@@ -23,7 +23,6 @@ class AuthController extends Controller
             'name' => $validated['name'],
             'email' => $validated['email'],
             'password' => $validated['password'],
-            'role' => 'user',
         ]);
 
         return response()->json([
