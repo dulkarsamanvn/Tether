@@ -5,6 +5,7 @@ namespace App\Http\Controllers;
 use App\Models\Blog;
 use Illuminate\Http\Request;
 use Illuminate\Support\Str;
+use Illuminate\Support\Facades\Storage;
 
 class BlogController extends Controller
 {
@@ -35,7 +36,7 @@ class BlogController extends Controller
             'title' => ['required', 'string', 'max:255'],
             'excerpt' => ['nullable', 'string'],
             'content' => ['required', 'string'],
-            'featured_image' => ['nullable', 'string', 'max:255'],
+            'featured_image' => ['nullable', 'image', 'mimes:jpg,jpeg,png,webp', 'max:2048'],
             'status' => ['required', 'in:draft,published'],
             'meta_title' => ['nullable', 'string', 'max:255'],
             'meta_description' => ['nullable', 'string'],
@@ -44,6 +45,11 @@ class BlogController extends Controller
         ]);
 
         $validated['slug'] = $this->makeSlug($validated['title']);
+
+        // if a picture was uploaded, save it and keep its location
+        if ($request->hasFile('featured_image')) {
+            $validated['featured_image'] = $request->file('featured_image')->store('blogs', 'public');
+        }
 
         if ($validated['status'] === 'published') {
             $validated['published_at'] = now();
@@ -66,13 +72,21 @@ class BlogController extends Controller
             'title' => ['sometimes', 'required', 'string', 'max:255'],
             'excerpt' => ['nullable', 'string'],
             'content' => ['sometimes', 'required', 'string'],
-            'featured_image' => ['nullable', 'string', 'max:255'],
+            'featured_image' => ['nullable', 'image', 'mimes:jpg,jpeg,png,webp', 'max:2048'],
             'status' => ['sometimes', 'required', 'in:draft,published'],
             'meta_title' => ['nullable', 'string', 'max:255'],
             'meta_description' => ['nullable', 'string'],
             'is_featured' => ['boolean'],
             'allow_comments' => ['boolean'],
         ]);
+
+        // if a new picture was uploaded, remove the old one and save the new one
+        if ($request->hasFile('featured_image')) {
+            if ($blog->featured_image) {
+                Storage::disk('public')->delete($blog->featured_image);
+            }
+            $validated['featured_image'] = $request->file('featured_image')->store('blogs', 'public');
+        }
 
         if (($validated['status'] ?? null) === 'published' && ! $blog->published_at) {
             $validated['published_at'] = now();
@@ -95,6 +109,29 @@ class BlogController extends Controller
         return response()->json([
             'message' => 'Blog deleted successfully.',
         ]);
+    }
+
+    // show all blogs of logged in user (all statuses: draft + published)
+    public function myBlogs(Request $request)
+    {
+        $query = $request->user()->blogs()->latest();
+
+        // optional ?status=draft|published filter
+        if ($request->has('status') && in_array($request->status, ['draft', 'published'])) {
+            $query->where('status', $request->status);
+        }
+
+        $blogs = $query->paginate(10);
+
+        return response()->json($blogs);
+    }
+
+    // show a single blog owned by the logged-in user (any status, no view_count increment)
+    public function myBlog(Request $request, $id)
+    {
+        $blog = $request->user()->blogs()->findOrFail($id);
+
+        return response()->json($blog);
     }
 
     //helper functions
