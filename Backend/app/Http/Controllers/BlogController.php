@@ -3,6 +3,7 @@
 namespace App\Http\Controllers;
 
 use App\Models\Blog;
+use App\Models\BlogView;
 use Illuminate\Http\Request;
 use Illuminate\Support\Str;
 use Illuminate\Support\Facades\Storage;
@@ -10,21 +11,73 @@ use Illuminate\Support\Facades\Storage;
 class BlogController extends Controller
 {
     //show all published blogs
-    public function index()
+    public function index(Request $request)
     {
-        $blogs = Blog::where('status','published')
-            ->latest('published_at')
-            ->paginate(10);
+        $query = Blog::with(['user', 'categories', 'tags'])
+            ->where('status','published');
+
+        // Filter by category slug
+        if ($request->has('category')) {
+            $query->whereHas('categories', function ($q) use ($request) {
+                $q->where('slug', $request->category);
+            });
+        }
+
+        // Filter by tag slug
+        if ($request->has('tag')) {
+            $query->whereHas('tags', function ($q) use ($request) {
+                $q->where('slug', $request->tag);
+            });
+        }
+
+        $blogs = $query->latest('published_at')->paginate(10);
 
         return response()->json($blogs);
     }
 
     //view one published blog 
-    public function show($id)
+    public function show(Request $request, $id)
     {
-        $blog = Blog::where('status', 'published')->findOrFail($id);
+        $blog = Blog::with(['user', 'categories', 'tags'])->where('status', 'published')->findOrFail($id);
 
-        $blog->increment('view_count');
+        // Try to resolve logged-in user (optional auth)
+        $user = auth('sanctum')->user();
+
+        // Don't count views from the blog author
+        $isAuthor = $user && $user->id === $blog->user_id;
+
+        if (! $isAuthor) {
+            if ($user) {
+                // Logged-in user: track by user_id (one view per user per blog)
+                $alreadyViewed = BlogView::where('blog_id', $blog->id)
+                    ->where('user_id', $user->id)
+                    ->exists();
+
+                if (! $alreadyViewed) {
+                    BlogView::create([
+                        'blog_id'    => $blog->id,
+                        'user_id'    => $user->id,
+                        'ip_address' => $request->ip(),
+                    ]);
+                    $blog->increment('view_count');
+                }
+            } else {
+                // Guest: track by IP address
+                $alreadyViewed = BlogView::where('blog_id', $blog->id)
+                    ->whereNull('user_id')
+                    ->where('ip_address', $request->ip())
+                    ->exists();
+
+                if (! $alreadyViewed) {
+                    BlogView::create([
+                        'blog_id'    => $blog->id,
+                        'user_id'    => null,
+                        'ip_address' => $request->ip(),
+                    ]);
+                    $blog->increment('view_count');
+                }
+            }
+        }
 
         return response()->json($blog);
     }
@@ -42,6 +95,10 @@ class BlogController extends Controller
             'meta_description' => ['nullable', 'string'],
             'is_featured' => ['boolean'],
             'allow_comments' => ['boolean'],
+            'category_ids' => ['nullable', 'array'],
+            'category_ids.*' => ['integer', 'exists:categories,id'],
+            'tag_ids' => ['nullable', 'array'],
+            'tag_ids.*' => ['integer', 'exists:tags,id'],
         ]);
 
         $validated['slug'] = $this->makeSlug($validated['title']);
@@ -56,6 +113,11 @@ class BlogController extends Controller
         }
 
         $blog = $request->user()->blogs()->create($validated);
+
+        // Sync categories and tags
+        $blog->categories()->sync($request->category_ids ?? []);
+        $blog->tags()->sync($request->tag_ids ?? []);
+        $blog->load(['categories', 'tags']);
 
         return response()->json([
             'message' => 'Blog created successfully.',
@@ -78,6 +140,10 @@ class BlogController extends Controller
             'meta_description' => ['nullable', 'string'],
             'is_featured' => ['boolean'],
             'allow_comments' => ['boolean'],
+            'category_ids' => ['nullable', 'array'],
+            'category_ids.*' => ['integer', 'exists:categories,id'],
+            'tag_ids' => ['nullable', 'array'],
+            'tag_ids.*' => ['integer', 'exists:tags,id'],
         ]);
 
         // if a new picture was uploaded, remove the old one and save the new one
@@ -92,6 +158,15 @@ class BlogController extends Controller
             $validated['published_at'] = now();
         }
         $blog->update($validated);
+
+        // Sync categories and tags
+        if ($request->has('category_ids')) {
+            $blog->categories()->sync($request->category_ids ?? []);
+        }
+        if ($request->has('tag_ids')) {
+            $blog->tags()->sync($request->tag_ids ?? []);
+        }
+        $blog->load(['categories', 'tags']);
 
         return response()->json([
             'message' => 'Blog updated successfully.',
@@ -114,7 +189,7 @@ class BlogController extends Controller
     // show all blogs of logged in user (all statuses: draft + published)
     public function myBlogs(Request $request)
     {
-        $query = $request->user()->blogs()->latest();
+        $query = $request->user()->blogs()->with(['categories', 'tags'])->latest();
 
         // optional ?status=draft|published filter
         if ($request->has('status') && in_array($request->status, ['draft', 'published'])) {
@@ -129,7 +204,7 @@ class BlogController extends Controller
     // show a single blog owned by the logged-in user (any status, no view_count increment)
     public function myBlog(Request $request, $id)
     {
-        $blog = $request->user()->blogs()->findOrFail($id);
+        $blog = $request->user()->blogs()->with(['categories', 'tags'])->findOrFail($id);
 
         return response()->json($blog);
     }

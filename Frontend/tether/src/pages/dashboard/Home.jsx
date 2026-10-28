@@ -13,10 +13,22 @@ export default function Home() {
   const [search, setSearch]     = useState('')
   const [params] = useSearchParams()
 
+  // Filters
+  const [categories, setCategories] = useState([])
+  const [tags, setTags]             = useState([])
+  const [activeCategory, setActiveCategory] = useState(null) // slug or null
+  const [activeTag, setActiveTag]           = useState(null)  // slug or null
+
 
   useEffect(() => {
     fetchBlogs(page)
-  }, [page])
+  }, [page, activeCategory, activeTag])
+
+  // Fetch categories & tags once
+  useEffect(() => {
+    api.get('/categories').then(({ data }) => setCategories(data)).catch(() => {})
+    api.get('/tags').then(({ data }) => setTags(data)).catch(() => {})
+  }, [])
 
   // Sync search query from URL param
   useEffect(() => {
@@ -28,7 +40,10 @@ export default function Home() {
     setLoading(true)
     setError(null)
     try {
-      const { data } = await api.get(`/blogs?page=${p}`)
+      let url = `/blogs?page=${p}`
+      if (activeCategory) url += `&category=${activeCategory}`
+      if (activeTag) url += `&tag=${activeTag}`
+      const { data } = await api.get(url)
       setBlogs(data.data)
       setMeta(data)
     } catch {
@@ -103,6 +118,73 @@ export default function Home() {
           Refresh
         </button>
       </motion.div>
+
+      {/* ── Filter chips ── */}
+      {(categories.length > 0 || tags.length > 0) && (
+        <motion.div
+          className="mb-6 space-y-3"
+          initial={{ opacity: 0, y: -6 }}
+          animate={{ opacity: 1, y: 0 }}
+          transition={{ duration: 0.35, delay: 0.15 }}
+        >
+          {/* Categories */}
+          {categories.length > 0 && (
+            <div className="flex flex-wrap items-center gap-2">
+              <span className="text-[11px] font-bold uppercase tracking-widest text-gray-400 dark:text-gray-500 mr-1">Category</span>
+              <button
+                onClick={() => { setActiveCategory(null); setPage(1) }}
+                className={`px-3 py-1.5 rounded-full text-xs font-semibold border transition-all duration-150
+                  ${!activeCategory
+                    ? 'border-transparent text-green shadow-sm'
+                    : 'border-gray-200 dark:border-gray-700 text-gray-500 dark:text-gray-400 hover:border-gray-300'}`}
+                style={!activeCategory ? { background: '#E89951' } : {}}
+              >
+                All
+              </button>
+              {categories.map(cat => (
+                <button
+                  key={cat.id}
+                  onClick={() => { setActiveCategory(activeCategory === cat.slug ? null : cat.slug); setPage(1) }}
+                  className={`px-3 py-1.5 rounded-full text-xs font-semibold border transition-all duration-150
+                    ${activeCategory === cat.slug
+                      ? 'border-transparent text-green shadow-sm'
+                      : 'border-gray-200 dark:border-gray-700 text-gray-500 dark:text-gray-400 hover:border-gray-300'}`}
+                  style={activeCategory === cat.slug ? { background: '#E89951' } : {}}
+                >
+                  {cat.name}
+                </button>
+              ))}
+            </div>
+          )}
+
+          {/* Tags */}
+          {tags.length > 0 && (
+            <div className="flex flex-wrap items-center gap-2">
+              <span className="text-[11px] font-bold uppercase tracking-widest text-gray-400 dark:text-gray-500 mr-1">Tags</span>
+              {activeTag && (
+                <button
+                  onClick={() => { setActiveTag(null); setPage(1) }}
+                  className="px-2 py-1 rounded-full text-[11px] font-semibold text-red-400 hover:text-red-600 transition-colors"
+                >
+                  Clear ✕
+                </button>
+              )}
+              {tags.map(tag => (
+                <button
+                  key={tag.id}
+                  onClick={() => { setActiveTag(activeTag === tag.slug ? null : tag.slug); setPage(1) }}
+                  className={`px-2.5 py-1 rounded-full text-[11px] font-medium border transition-all duration-150
+                    ${activeTag === tag.slug
+                      ? 'bg-gray-800 dark:bg-gray-200 text-white dark:text-gray-900 border-transparent'
+                      : 'border-gray-200 dark:border-gray-700 text-gray-500 dark:text-gray-400 hover:border-gray-400'}`}
+                >
+                  #{tag.name}
+                </button>
+              ))}
+            </div>
+          )}
+        </motion.div>
+      )}
 
       {/* ── Error ── */}
       {error && (

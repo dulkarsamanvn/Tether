@@ -149,6 +149,13 @@ export default function BlogEditor() {
   const [imageFile,     setImageFile]    = useState(null)   // File | null
   const [existingImage, setExistingImage] = useState('')    // server path string
 
+  // Categories & Tags
+  const [allCategories, setAllCategories] = useState([])
+  const [allTags, setAllTags] = useState([])
+  const [selectedCategoryIds, setSelectedCategoryIds] = useState([])
+  const [selectedTagIds, setSelectedTagIds] = useState([])
+  const [newTagName, setNewTagName] = useState('')
+
   // Derive the preview URL shown in the UI
   const previewUrl = imageFile
     ? URL.createObjectURL(imageFile)
@@ -192,8 +199,10 @@ export default function BlogEditor() {
           is_featured:      data.is_featured      ?? false,
           allow_comments:   data.allow_comments   ?? true,
         })
-        // Store server path — shown as existing image preview
         setExistingImage(data.featured_image ?? '')
+        // Pre-populate categories & tags
+        setSelectedCategoryIds((data.categories ?? []).map(c => c.id))
+        setSelectedTagIds((data.tags ?? []).map(t => t.id))
         // Store content — Effect 2 will push it into the editor when ready
         setFetchedContent(data.content ?? '')
       } catch (err) {
@@ -211,6 +220,12 @@ export default function BlogEditor() {
     return () => { cancelled = true }
   // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [isEdit, id])
+
+  // ── Effect: fetch categories & tags ────────────────────────────────────
+  useEffect(() => {
+    api.get('/categories').then(({ data }) => setAllCategories(data)).catch(() => {})
+    api.get('/tags').then(({ data }) => setAllTags(data)).catch(() => {})
+  }, [])
 
   // ── Effect 2: push content into editor once both are ready ────────────
   // Runs when editor initialises (null → instance) AND fetchedContent is set.
@@ -250,6 +265,10 @@ export default function BlogEditor() {
     if (imageFile) {
       fd.append('featured_image', imageFile)
     }
+
+    // Append category and tag IDs
+    selectedCategoryIds.forEach(id => fd.append('category_ids[]', id))
+    selectedTagIds.forEach(id => fd.append('tag_ids[]', id))
 
     try {
       if (isEdit) {
@@ -463,6 +482,102 @@ export default function BlogEditor() {
                 </button>
               </div>
             ))}
+          </div>
+
+          {/* Categories & Tags */}
+          <div className="bg-white dark:bg-gray-900 rounded-2xl border border-gray-100 dark:border-gray-800 p-5 space-y-4">
+            <p className="text-xs font-bold uppercase tracking-widest text-gray-400 dark:text-gray-500">
+              Organize
+            </p>
+
+            <Field label="Categories">
+              <div className="max-h-36 overflow-y-auto space-y-1.5 pr-1">
+                {allCategories.map((cat) => (
+                  <label key={cat.id} className="flex items-center gap-2 cursor-pointer group">
+                    <input
+                      type="checkbox"
+                      checked={selectedCategoryIds.includes(cat.id)}
+                      onChange={() => {
+                        setSelectedCategoryIds((prev) =>
+                          prev.includes(cat.id)
+                            ? prev.filter((id) => id !== cat.id)
+                            : [...prev, cat.id]
+                        )
+                      }}
+                      className="w-4 h-4 rounded border-2 border-gray-200 dark:border-gray-700
+                        text-bordo focus:ring-bordo/30 bg-gray-50 dark:bg-gray-800"
+                    />
+                    <span className="text-sm text-gray-600 dark:text-gray-400 group-hover:text-gray-900 dark:group-hover:text-gray-200 transition-colors">
+                      {cat.name}
+                    </span>
+                  </label>
+                ))}
+                {allCategories.length === 0 && (
+                  <p className="text-xs text-gray-300 dark:text-gray-600">No categories available</p>
+                )}
+              </div>
+            </Field>
+
+            <Field label="Tags">
+              {/* Selected tags */}
+              <div className="flex flex-wrap gap-1.5 mb-2">
+                {allTags.filter(t => selectedTagIds.includes(t.id)).map((tag) => (
+                  <span key={tag.id} className="inline-flex items-center gap-1 px-2 py-0.5 rounded-full text-[11px] font-semibold
+                    bg-gray-100 dark:bg-gray-800 text-gray-600 dark:text-gray-300">
+                    {tag.name}
+                    <button type="button" onClick={() => setSelectedTagIds(prev => prev.filter(id => id !== tag.id))}
+                      className="text-gray-400 hover:text-red-500 transition-colors ml-0.5">✕</button>
+                  </span>
+                ))}
+              </div>
+              {/* Tag input */}
+              <div className="flex gap-1.5">
+                <input
+                  type="text"
+                  value={newTagName}
+                  onChange={(e) => setNewTagName(e.target.value)}
+                  onKeyDown={async (e) => {
+                    if (e.key !== 'Enter' || !newTagName.trim()) return
+                    e.preventDefault()
+                    const existing = allTags.find(t => t.name.toLowerCase() === newTagName.trim().toLowerCase())
+                    if (existing) {
+                      if (!selectedTagIds.includes(existing.id)) {
+                        setSelectedTagIds(prev => [...prev, existing.id])
+                      }
+                    } else {
+                      try {
+                        const { data } = await api.post('/tags', { name: newTagName.trim() })
+                        setAllTags(prev => [...prev, data])
+                        setSelectedTagIds(prev => [...prev, data.id])
+                      } catch { /* tag may already exist */ }
+                    }
+                    setNewTagName('')
+                  }}
+                  placeholder="Type & press Enter…"
+                  className="flex-1 min-w-0 text-sm bg-gray-50 dark:bg-gray-800 rounded-xl
+                    border-2 border-gray-100 dark:border-gray-800 px-3 py-2
+                    text-gray-900 dark:text-white placeholder-gray-300 dark:placeholder-gray-600
+                    outline-none focus:border-sage dark:focus:border-sage focus:ring-2 focus:ring-sage/15
+                    transition-all duration-200"
+                />
+              </div>
+              {/* Existing tags dropdown */}
+              {allTags.filter(t => !selectedTagIds.includes(t.id)).length > 0 && (
+                <div className="flex flex-wrap gap-1 mt-2">
+                  {allTags.filter(t => !selectedTagIds.includes(t.id)).map(tag => (
+                    <button key={tag.id} type="button"
+                      onClick={() => setSelectedTagIds(prev => [...prev, tag.id])}
+                      className="px-2 py-0.5 rounded-full text-[11px] font-medium
+                        border border-gray-200 dark:border-gray-700
+                        text-gray-400 dark:text-gray-500
+                        hover:border-sage hover:text-sage
+                        transition-all duration-150">
+                      + {tag.name}
+                    </button>
+                  ))}
+                </div>
+              )}
+            </Field>
           </div>
 
           {/* Excerpt */}

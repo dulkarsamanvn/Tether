@@ -155,7 +155,7 @@ export default function DashboardLayout() {
             <NavLink
               key={item.to}
               to={item.to}
-              end={item.to === '/dashboard'}
+              end
               onClick={() => setMobileOpen(false)}
               className={({ isActive }) =>
                 'flex items-center gap-3 px-2.5 py-2.5 rounded-xl text-sm font-medium ' +

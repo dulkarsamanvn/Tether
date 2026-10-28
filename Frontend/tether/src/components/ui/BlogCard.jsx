@@ -65,6 +65,24 @@ export default function BlogCard({ blog, index = 0 }) {
           {blog.title}
         </h3>
 
+        {/* Categories & Tags */}
+        {((blog.categories && blog.categories.length > 0) || (blog.tags && blog.tags.length > 0)) && (
+          <div className="flex flex-wrap gap-1.5 mb-3">
+            {(blog.categories || []).map(cat => (
+              <span key={cat.id} className="px-2 py-0.5 rounded-full text-[10px] font-bold uppercase tracking-wider"
+                style={{ background: 'rgba(232,153,81,0.15)', color: '#E89951' }}>
+                {cat.name}
+              </span>
+            ))}
+            {(blog.tags || []).map(tag => (
+              <span key={tag.id} className="px-2 py-0.5 rounded-full text-[10px] font-medium
+                bg-gray-100 dark:bg-gray-800 text-gray-500 dark:text-gray-400">
+                #{tag.name}
+              </span>
+            ))}
+          </div>
+        )}
+
         {/* Excerpt */}
         <p className="text-gray-400 dark:text-gray-500 text-sm leading-relaxed flex-1 mb-4">
           {blog.excerpt

@@ -1,7 +1,8 @@
-import { motion } from 'framer-motion'
+import { AnimatePresence, motion } from 'framer-motion'
 import { useEffect, useState } from 'react'
 import { useNavigate, useParams } from 'react-router-dom'
 import api from '../../api/api'
+import { useAuth } from '../../hooks/useAuth'
 import '../../styles/editor.css'
 
 const STORAGE = 'http://localhost:8000/storage'
@@ -22,14 +23,24 @@ const SKELETON_WIDTHS = ['92%', '78%', '85%', '70%', '88%', '75%', '80%', '65%']
 export default function BlogView() {
   const { id }   = useParams()
   const navigate = useNavigate()
+  const { user } = useAuth()
 
   const [blog,    setBlog]    = useState(null)
   const [loading, setLoading] = useState(true)
   const [error,   setError]   = useState(null)
+  // Comments state
+  const [comments, setComments] = useState([])
+  const [commentsLoading, setCommentsLoading] = useState(false)
+  const [commentsError, setCommentsError] = useState(null)
+  const [newComment, setNewComment] = useState('')
+  const [submitting, setSubmitting] = useState(false)
+  const [deleteTarget, setDeleteTarget] = useState(null)
+  const [deleting, setDeleting] = useState(false)
 
   useEffect(() => {
     let cancelled = false
 
+    // ---- Blog data ----
     setLoading(true)
     setBlog(null)
     setError(null)
@@ -48,6 +59,20 @@ export default function BlogView() {
       })
       .finally(() => {
         if (!cancelled) setLoading(false)
+      })
+
+    // ---- Comments data ----
+    setCommentsLoading(true)
+    setCommentsError(null)
+    api.get(`/blogs/${id}/comments`)
+      .then(({ data }) => {
+        if (!cancelled) setComments(data.data ?? data)
+      })
+      .catch((err) => {
+        if (!cancelled) setCommentsError('Failed to load comments.')
+      })
+      .finally(() => {
+        if (!cancelled) setCommentsLoading(false)
       })
 
     return () => { cancelled = true }
@@ -102,6 +127,7 @@ export default function BlogView() {
   const published = fmtDate(blog.published_at ?? blog.created_at)
 
   return (
+    <>
     <motion.div
       className="max-w-3xl mx-auto"
       initial={{ opacity: 0, y: 16 }}
@@ -163,6 +189,18 @@ export default function BlogView() {
             style={{ background: 'rgba(165,207,131,0.12)', borderColor: 'rgba(165,207,131,0.35)', color: '#3d7a24' }}>
             Published
           </span>
+          {(blog.categories || []).map(cat => (
+            <span key={cat.id} className="px-2.5 py-1 rounded-full text-[11px] font-bold"
+              style={{ background: 'rgba(232,153,81,0.15)', color: '#E89951' }}>
+              {cat.name}
+            </span>
+          ))}
+          {(blog.tags || []).map(tag => (
+            <span key={tag.id} className="px-2.5 py-1 rounded-full text-[11px] font-medium
+              bg-gray-100 dark:bg-gray-800 text-gray-500 dark:text-gray-400">
+              #{tag.name}
+            </span>
+          ))}
         </div>
 
         {/* Title */}
@@ -229,6 +267,82 @@ export default function BlogView() {
         dangerouslySetInnerHTML={{ __html: blog.content ?? '' }}
       />
 
+      {/* ── Comments ── */}
+      <section className="mt-12 border-t border-gray-100 dark:border-gray-800 pt-8">
+        <h2 className="text-xl font-semibold mb-4 text-gray-900 dark:text-white">Comments</h2>
+
+        {/* Comment list */}
+        {commentsLoading ? (
+          <p className="text-gray-500 dark:text-gray-400">Loading comments…</p>
+        ) : commentsError ? (
+          <p className="text-red-500">{commentsError}</p>
+        ) : comments.length === 0 ? (
+          <p className="text-gray-500 dark:text-gray-400">No comments yet. Be the first to comment!</p>
+        ) : (
+          <ul className="space-y-4 mb-6">
+            {comments.map((c) => (
+              <li key={c.id} className="bg-gray-50 dark:bg-gray-800 p-4 rounded-lg">
+                <div className="flex items-center justify-between mb-2">
+                  <div className="flex items-center gap-2">
+                    <span className="font-medium text-gray-800 dark:text-gray-200">{c.user?.name ?? 'Guest'}</span>
+                    <span className="text-xs text-gray-500 dark:text-gray-400">{new Date(c.created_at).toLocaleDateString()}</span>
+                  </div>
+                  {(user?.id === c.user_id || user?.id === blog?.user_id) && (
+                    <button
+                      onClick={() => setDeleteTarget(c)}
+                      className="text-red-400 hover:text-red-600 transition-colors p-1 rounded-lg hover:bg-red-50 dark:hover:bg-red-900/20"
+                      title="Delete comment"
+                    >
+                      <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2}
+                          d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16" />
+                      </svg>
+                    </button>
+                  )}
+                </div>
+                <p className="text-gray-700 dark:text-gray-300">{c.body}</p>
+              </li>
+            ))}
+          </ul>
+        )}
+
+        {/* New comment form */}
+        <form
+          onSubmit={async (e) => {
+            e.preventDefault()
+            if (!newComment.trim()) return
+            setSubmitting(true)
+            try {
+              await api.post(`/blogs/${id}/comments`, { body: newComment.trim() })
+              const { data } = await api.get(`/blogs/${id}/comments`)
+              setComments(data.data ?? data)
+              setNewComment('')
+            } catch {
+              alert('Failed to post comment.')
+            } finally {
+              setSubmitting(false)
+            }
+          }}
+          className="space-y-3"
+        >
+          <textarea
+            value={newComment}
+            onChange={(e) => setNewComment(e.target.value)}
+            placeholder="Write a comment…"
+            rows={3}
+            className="w-full p-3 rounded-xl border-2 border-gray-200 dark:border-gray-700 bg-white dark:bg-gray-900 text-gray-900 dark:text-white focus:border-bordo focus:ring-2 focus:ring-bordo/20 outline-none transition"
+          />
+          <button
+            type="submit"
+            disabled={submitting}
+            className="px-5 py-2.5 rounded-xl text-sm font-bold"
+            style={{ background: '#E89951', color: '#18190F' }}
+          >
+            {submitting ? 'Posting…' : 'Post Comment'}
+          </button>
+        </form>
+      </section>
+
       {/* ── Footer ── */}
       <div className="border-t border-gray-100 dark:border-gray-800 pt-8 pb-12
         flex items-center justify-between">
@@ -258,5 +372,72 @@ export default function BlogView() {
         </button>
       </div>
     </motion.div>
+
+      {/* ── Delete comment modal ── */}
+      <AnimatePresence>
+        {deleteTarget && (
+          <motion.div
+            className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/40 backdrop-blur-sm"
+            initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }}
+          >
+            <motion.div
+              className="bg-white dark:bg-gray-900 rounded-2xl shadow-2xl p-7 max-w-sm w-full border border-gray-100 dark:border-gray-800"
+              initial={{ scale: 0.9, opacity: 0, y: 16 }}
+              animate={{ scale: 1,   opacity: 1, y: 0 }}
+              exit={{   scale: 0.9, opacity: 0, y: 16 }}
+              transition={{ duration: 0.2, ease: 'easeOut' }}
+            >
+              <div className="w-12 h-12 rounded-xl bg-red-50 dark:bg-red-900/20 flex items-center justify-center mb-4">
+                <svg className="w-6 h-6 text-red-500" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2}
+                    d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16"/>
+                </svg>
+              </div>
+              <h3 className="text-base font-bold text-gray-900 dark:text-white mb-1">Delete Comment?</h3>
+              <p className="text-sm text-gray-400 dark:text-gray-500 mb-6 leading-relaxed">
+                This comment by <span className="font-medium text-gray-600 dark:text-gray-300">{deleteTarget.user?.name ?? 'Guest'}</span> will be permanently deleted. This cannot be undone.
+              </p>
+              <div className="flex gap-3">
+                <button
+                  onClick={() => { setDeleteTarget(null); setDeleting(false) }}
+                  className="flex-1 py-2.5 rounded-xl border-2 border-gray-100 dark:border-gray-800
+                    text-gray-500 dark:text-gray-400 text-sm font-semibold
+                    hover:border-gray-200 dark:hover:border-gray-700 transition-colors"
+                >
+                  Cancel
+                </button>
+                <button
+                  onClick={async () => {
+                    setDeleting(true)
+                    try {
+                      await api.delete(`/comments/${deleteTarget.id}`)
+                      setComments((prev) => prev.filter((x) => x.id !== deleteTarget.id))
+                      setDeleteTarget(null)
+                    } catch {
+                      alert('Failed to delete comment.')
+                    } finally {
+                      setDeleting(false)
+                    }
+                  }}
+                  disabled={deleting}
+                  className="flex-1 py-2.5 rounded-xl bg-red-500 hover:bg-red-600
+                    text-white text-sm font-semibold shadow-md shadow-red-500/25
+                    disabled:opacity-60 disabled:cursor-not-allowed
+                    flex items-center justify-center gap-2 transition-colors"
+                >
+                  {deleting ? (
+                    <svg className="animate-spin w-4 h-4" fill="none" viewBox="0 0 24 24">
+                      <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4"/>
+                      <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4z"/>
+                    </svg>
+                  ) : null}
+                  Delete
+                </button>
+              </div>
+            </motion.div>
+          </motion.div>
+        )}
+      </AnimatePresence>
+    </>
   )
 }
