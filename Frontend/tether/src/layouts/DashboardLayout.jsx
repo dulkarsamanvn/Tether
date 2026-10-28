@@ -1,5 +1,5 @@
 import { AnimatePresence, motion } from 'framer-motion'
-import { useState } from 'react'
+import { useRef, useState } from 'react'
 import { NavLink, Outlet, useNavigate } from 'react-router-dom'
 import api from '../api/api'
 import { useAuth } from '../hooks/useAuth'
@@ -43,9 +43,32 @@ export default function DashboardLayout() {
   const { theme, toggle } = useTheme()
   const navigate          = useNavigate()
 
-  const [collapsed, setCollapsed]   = useState(false)
-  const [mobileOpen, setMobileOpen] = useState(false)
-  const [loggingOut, setLoggingOut] = useState(false)
+  const [collapsed,   setCollapsed]   = useState(false)
+  const [mobileOpen,  setMobileOpen]  = useState(false)
+  const [loggingOut,  setLoggingOut]  = useState(false)
+
+  // ── Search state ─────────────────────────────────────────────────────
+  const [searchOpen,  setSearchOpen]  = useState(false)
+  const [searchQuery, setSearchQuery] = useState('')
+  const searchInputRef = useRef(null)
+
+  function openSearch() {
+    setSearchOpen(true)
+    setTimeout(() => searchInputRef.current?.focus(), 80)
+  }
+
+  function closeSearch() {
+    setSearchOpen(false)
+    setSearchQuery('')
+  }
+
+  function handleSearchSubmit(e) {
+    e.preventDefault()
+    if (!searchQuery.trim()) return
+    // Navigate to home with ?q= param so Home.jsx can pick it up
+    navigate('/dashboard?q=' + encodeURIComponent(searchQuery.trim()))
+    closeSearch()
+  }
 
   const handleLogout = async () => {
     setLoggingOut(true)
@@ -82,12 +105,12 @@ export default function DashboardLayout() {
           transition-transform duration-300 lg:transition-none
         `}
       >
-        {/* ── Logo + collapse toggle ── */}
+        {/* ── Logo header ── */}
         <div className="flex items-center h-16 px-4
           border-b border-gray-200 dark:border-green-dark/60
-          shrink-0 justify-between">
+          shrink-0">
 
-          <div className="flex items-center gap-3 min-w-0">
+          <div className="flex items-center gap-3 min-w-0 flex-1">
             {/* Icon mark */}
             <div className="relative w-9 h-9 shrink-0">
               <div
@@ -98,7 +121,7 @@ export default function DashboardLayout() {
                 }}
               />
               <svg viewBox="0 0 40 40" fill="none" className="absolute inset-0 w-full h-full p-2">
-                <rect x="4" y="7" width="32" height="7" rx="3.5" fill="#18190F" opacity="0.95"/>
+                <rect x="4"    y="7"  width="32" height="7"  rx="3.5" fill="#18190F" opacity="0.95"/>
                 <rect x="14.5" y="14" width="11" height="19" rx="3.5" fill="#18190F" opacity="0.95"/>
                 <circle cx="20" cy="35" r="2.5" fill="#F0E76F"/>
               </svg>
@@ -114,40 +137,16 @@ export default function DashboardLayout() {
                   transition={{ duration: 0.2 }}
                   className="overflow-hidden whitespace-nowrap"
                 >
-                  {/* Light mode: dark text / Dark mode: orange text */}
-                  <p className="font-black text-base leading-none tracking-tight
-                    text-green dark:text-bordo">
+                  <p className="font-black text-base leading-none tracking-tight text-green dark:text-bordo">
                     Tether
                   </p>
-                  <p className="text-[9px] tracking-widest uppercase mt-0.5
-                    text-green/40 dark:text-bordo/50">
+                  <p className="text-[9px] tracking-widest uppercase mt-0.5 text-green/40 dark:text-bordo/50">
                     by dulkar
                   </p>
                 </motion.div>
               )}
             </AnimatePresence>
           </div>
-
-          {/* Collapse toggle */}
-          <motion.button
-            onClick={() => setCollapsed((v) => !v)}
-            whileTap={{ scale: 0.9 }}
-            className="hidden lg:flex items-center justify-center w-7 h-7 rounded-lg
-              text-gray-400 hover:text-gray-700 hover:bg-gray-100
-              dark:text-cream/40 dark:hover:text-cream dark:hover:bg-white/10
-              transition-colors duration-150 shrink-0"
-            aria-label={collapsed ? 'Expand sidebar' : 'Collapse sidebar'}
-          >
-            <motion.svg
-              className="w-4 h-4"
-              fill="none" stroke="currentColor" viewBox="0 0 24 24"
-              animate={{ rotate: collapsed ? 180 : 0 }}
-              transition={{ duration: 0.25 }}
-            >
-              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2.2}
-                d="M11 19l-7-7 7-7m8 14l-7-7 7-7" />
-            </motion.svg>
-          </motion.button>
         </div>
 
         {/* ── Nav ── */}
@@ -159,14 +158,11 @@ export default function DashboardLayout() {
               end={item.to === '/dashboard'}
               onClick={() => setMobileOpen(false)}
               className={({ isActive }) =>
-                `flex items-center gap-3 px-2.5 py-2.5 rounded-xl text-sm font-medium
-                 transition-all duration-150 group relative
-                 ${isActive
-                   /* Active: orange bg, dark text always */
-                   ? 'bg-bordo text-green dark:text-green shadow-md shadow-bordo/30'
-                   /* Inactive: muted in both modes */
-                   : 'text-gray-400 hover:text-gray-800 hover:bg-gray-100 dark:text-cream/60 dark:hover:text-cream dark:hover:bg-white/10'
-                 }`
+                'flex items-center gap-3 px-2.5 py-2.5 rounded-xl text-sm font-medium ' +
+                'transition-all duration-150 group relative ' +
+                (isActive
+                  ? 'bg-bordo text-green dark:text-green shadow-md shadow-bordo/30'
+                  : 'text-gray-400 hover:text-gray-800 hover:bg-gray-100 dark:text-cream/60 dark:hover:text-cream dark:hover:bg-white/10')
               }
             >
               {item.icon}
@@ -205,10 +201,12 @@ export default function DashboardLayout() {
         {/* ── User info ── */}
         <div className="p-3 border-t border-gray-200 dark:border-green-dark/60 shrink-0">
           <div className="flex items-center gap-3 px-1.5 min-w-0">
-            <div className="w-8 h-8 rounded-full flex items-center justify-center shrink-0 shadow-md"
-              style={{ background: '#E89951' }}>
+            <div
+              className="w-8 h-8 rounded-full flex items-center justify-center shrink-0 shadow-md"
+              style={{ background: '#E89951' }}
+            >
               <span className="text-xs font-bold" style={{ color: '#18190F' }}>
-                {user?.name?.[0]?.toUpperCase() ?? 'U'}
+                {user && user.name ? user.name[0].toUpperCase() : 'U'}
               </span>
             </div>
 
@@ -221,13 +219,11 @@ export default function DashboardLayout() {
                   transition={{ duration: 0.18 }}
                   className="min-w-0 overflow-hidden"
                 >
-                  <p className="text-xs font-semibold truncate whitespace-nowrap
-                    text-green dark:text-cream">
-                    {user?.name ?? 'User'}
+                  <p className="text-xs font-semibold truncate whitespace-nowrap text-green dark:text-cream">
+                    {user ? user.name : 'User'}
                   </p>
-                  <p className="text-[10px] truncate whitespace-nowrap
-                    text-green/40 dark:text-cream/40">
-                    {user?.email ?? ''}
+                  <p className="text-[10px] truncate whitespace-nowrap text-green/40 dark:text-cream/40">
+                    {user ? user.email : ''}
                   </p>
                 </motion.div>
               )}
@@ -242,27 +238,143 @@ export default function DashboardLayout() {
       <div className="flex-1 flex flex-col min-w-0">
 
         {/* ── Topbar ── */}
-        <header className="sticky top-0 z-10 h-16 flex items-center justify-between px-5
+        <header className="sticky top-0 z-10 h-16 flex items-center justify-between px-4
           bg-white/90 dark:bg-gray-900/80 backdrop-blur-md
           border-b border-gray-200 dark:border-gray-800
           transition-colors duration-300">
 
+          {/* LEFT: hamburger + title */}
           <div className="flex items-center gap-3">
-            <button
-              className="lg:hidden p-2 rounded-lg
-                text-gray-400 hover:bg-gray-100 dark:hover:bg-gray-800
-                transition-colors"
-              onClick={() => setMobileOpen((v) => !v)}
+
+            {/* ── Hamburger — always visible, toggles sidebar ── */}
+            <motion.button
+              onClick={() => {
+                if (window.innerWidth >= 1024) {
+                  setCollapsed((v) => !v)
+                } else {
+                  setMobileOpen((v) => !v)
+                }
+              }}
+              whileTap={{ scale: 0.88 }}
+              className="w-9 h-9 flex flex-col items-center justify-center gap-1.5 rounded-xl
+                text-gray-500 dark:text-gray-400
+                hover:bg-gray-100 dark:hover:bg-gray-800
+                transition-colors duration-150 shrink-0"
               aria-label="Toggle sidebar"
             >
-              <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 6h16M4 12h16M4 18h16"/>
-              </svg>
-            </button>
-            <p className="font-semibold text-sm text-gray-700 dark:text-gray-200">Dashboard</p>
+              {/* Three animated bars */}
+              <motion.span
+                animate={collapsed || mobileOpen
+                  ? { rotate: 45, y: 7, width: '18px' }
+                  : { rotate: 0,  y: 0, width: '18px' }}
+                transition={{ duration: 0.22 }}
+                className="block h-0.5 rounded-full bg-current origin-center"
+                style={{ width: 18 }}
+              />
+              <motion.span
+                animate={collapsed || mobileOpen
+                  ? { opacity: 0, scaleX: 0 }
+                  : { opacity: 1, scaleX: 1 }}
+                transition={{ duration: 0.15 }}
+                className="block h-0.5 rounded-full bg-current"
+                style={{ width: 14 }}
+              />
+              <motion.span
+                animate={collapsed || mobileOpen
+                  ? { rotate: -45, y: -7, width: '18px' }
+                  : { rotate: 0,   y: 0,  width: '18px' }}
+                transition={{ duration: 0.22 }}
+                className="block h-0.5 rounded-full bg-current origin-center"
+                style={{ width: 18 }}
+              />
+            </motion.button>
+
+            {/* Page title — hidden when search is open */}
+            <AnimatePresence>
+              {!searchOpen && (
+                <motion.p
+                  initial={{ opacity: 0 }}
+                  animate={{ opacity: 1 }}
+                  exit={{ opacity: 0 }}
+                  transition={{ duration: 0.15 }}
+                  className="font-semibold text-sm text-gray-700 dark:text-gray-200 hidden sm:block"
+                >
+                  Dashboard
+                </motion.p>
+              )}
+            </AnimatePresence>
           </div>
 
+          {/* RIGHT: search + theme + logout */}
           <div className="flex items-center gap-2">
+
+            {/* ── Search bar ── */}
+            <AnimatePresence>
+              {searchOpen ? (
+                <motion.form
+                  key="search-form"
+                  onSubmit={handleSearchSubmit}
+                  initial={{ width: 40, opacity: 0 }}
+                  animate={{ width: 260, opacity: 1 }}
+                  exit={{ width: 40, opacity: 0 }}
+                  transition={{ duration: 0.25, ease: 'easeInOut' }}
+                  className="relative flex items-center overflow-hidden"
+                >
+                  <svg
+                    className="absolute left-3 w-4 h-4 text-gray-400 shrink-0 pointer-events-none"
+                    fill="none" stroke="currentColor" viewBox="0 0 24 24"
+                  >
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2}
+                      d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z" />
+                  </svg>
+                  <input
+                    ref={searchInputRef}
+                    type="text"
+                    value={searchQuery}
+                    onChange={(e) => setSearchQuery(e.target.value)}
+                    onKeyDown={(e) => e.key === 'Escape' && closeSearch()}
+                    placeholder="Search blogs…"
+                    className="w-full pl-9 pr-9 py-2 text-sm rounded-xl
+                      bg-gray-100 dark:bg-gray-800
+                      border-2 border-transparent focus:border-bordo
+                      text-gray-900 dark:text-white
+                      placeholder-gray-400 dark:placeholder-gray-500
+                      outline-none transition-all duration-200"
+                  />
+                  {/* Clear / close */}
+                  <button
+                    type="button"
+                    onClick={closeSearch}
+                    className="absolute right-2.5 text-gray-400 hover:text-gray-600 dark:hover:text-gray-200 transition-colors"
+                  >
+                    <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
+                    </svg>
+                  </button>
+                </motion.form>
+              ) : (
+                <motion.button
+                  key="search-icon"
+                  onClick={openSearch}
+                  whileTap={{ scale: 0.88 }}
+                  initial={{ opacity: 0 }}
+                  animate={{ opacity: 1 }}
+                  exit={{ opacity: 0 }}
+                  transition={{ duration: 0.15 }}
+                  className="w-9 h-9 flex items-center justify-center rounded-xl
+                    bg-gray-100 dark:bg-gray-800
+                    text-gray-500 dark:text-gray-400
+                    hover:bg-gray-200 dark:hover:bg-gray-700
+                    transition-colors duration-200"
+                  aria-label="Search"
+                >
+                  <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2}
+                      d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z" />
+                  </svg>
+                </motion.button>
+              )}
+            </AnimatePresence>
 
             {/* Theme toggle */}
             <motion.button
