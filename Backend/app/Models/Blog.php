@@ -7,6 +7,7 @@ use Illuminate\Database\Eloquent\Relations\BelongsTo;
 use Illuminate\Database\Eloquent\Relations\HasMany;
 use Illuminate\Database\Eloquent\SoftDeletes;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
+use Illuminate\Database\Eloquent\Casts\Attribute;
 
 class Blog extends Model
 {
@@ -27,6 +28,7 @@ class Blog extends Model
         'is_featured',
         'allow_comments',
     ];
+    protected $appends = ['featured_image_url'];
 
 
     protected function casts():array
@@ -44,8 +46,17 @@ class Blog extends Model
         return $this->belongsTo(User::class);
     }
 
-    // public function comments(): HasMany
-    // {
-    //     return $this->hasMany(Comment::class);
-    // }
+    protected function featuredImageUrl(): Attribute
+    {
+        return Attribute::get(function () {
+            return $this->featured_image
+                ? asset('storage/' . $this->featured_image)
+                : null;
+        });
+    }
+
+    public function comments(): HasMany
+    {
+        return $this->hasMany(Comment::class);
+    }
 }

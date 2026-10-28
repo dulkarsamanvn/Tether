@@ -4,7 +4,10 @@ import { ThemeProvider } from './context/ThemeContext'
 import DashboardLayout from './layouts/DashboardLayout'
 import Login from './pages/auth/Login'
 import Signup from './pages/auth/Signup'
+import BlogEditor from './pages/dashboard/BlogEditor'
+import BlogView from './pages/dashboard/BlogView'
 import Home from './pages/dashboard/Home'
+import MyBlogs from './pages/dashboard/MyBlogs'
 
 function App() {
   return (
@@ -19,7 +22,10 @@ function App() {
             {/* Dashboard */}
             <Route path="/dashboard" element={<DashboardLayout />}>
               <Route index element={<Home />} />
-              {/* More nested pages go here */}
+              <Route path="blogs"               element={<MyBlogs />} />
+              <Route path="blogs/:id/view"       element={<BlogView />} />
+              <Route path="write"               element={<BlogEditor />} />
+              <Route path="blogs/:id/edit"      element={<BlogEditor />} />
             </Route>
 
             {/* Fallback */}

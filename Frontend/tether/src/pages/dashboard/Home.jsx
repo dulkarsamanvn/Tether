@@ -1,5 +1,6 @@
 import { motion } from 'framer-motion'
 import { useEffect, useState } from 'react'
+import { useSearchParams } from 'react-router-dom'
 import api from '../../api/api'
 import BlogCard from '../../components/ui/BlogCard'
 
@@ -10,10 +11,18 @@ export default function Home() {
   const [error, setError]       = useState(null)
   const [page, setPage]         = useState(1)
   const [search, setSearch]     = useState('')
+  const [params] = useSearchParams()
+
 
   useEffect(() => {
     fetchBlogs(page)
   }, [page])
+
+  // Sync search query from URL param
+  useEffect(() => {
+    const q = params.get('q') ?? ''
+    setSearch(q)
+  }, [params])
 
   const fetchBlogs = async (p = 1) => {
     setLoading(true)

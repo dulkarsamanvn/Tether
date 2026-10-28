@@ -1,0 +1,95 @@
+/* ── TipTap editor prose styles ─────────────────────────────────── */
+.tiptap-editor {
+  outline: none;
+  min-height: 420px;
+  line-height: 1.8;
+  font-size: 1rem;
+  color: #1a1a17;
+}
+
+.dark .tiptap-editor {
+  color: #e8e8e4;
+}
+
+.tiptap-editor p {
+  margin: 0 0 0.9em 0;
+}
+
+.tiptap-editor h1 { font-size: 2em;   font-weight: 800; margin: 1.2em 0 0.5em; line-height: 1.15; }
+.tiptap-editor h2 { font-size: 1.5em; font-weight: 700; margin: 1.1em 0 0.45em; line-height: 1.2; }
+.tiptap-editor h3 { font-size: 1.2em; font-weight: 700; margin: 1em 0 0.4em; }
+
+.tiptap-editor ul,
+.tiptap-editor ol {
+  padding-left: 1.6em;
+  margin: 0.7em 0;
+}
+
+.tiptap-editor li { margin: 0.25em 0; }
+.tiptap-editor ul li { list-style-type: disc; }
+.tiptap-editor ol li { list-style-type: decimal; }
+
+.tiptap-editor blockquote {
+  border-left: 3px solid #E89951;
+  padding: 0.5em 0 0.5em 1.2em;
+  margin: 1em 0;
+  color: #888;
+  font-style: italic;
+}
+
+.tiptap-editor code {
+  background: rgba(232, 153, 81, 0.12);
+  color: #d07f38;
+  padding: 0.15em 0.4em;
+  border-radius: 5px;
+  font-size: 0.88em;
+  font-family: 'Fira Code', 'Consolas', monospace;
+}
+
+.tiptap-editor pre {
+  background: #18190F;
+  color: #F0E76F;
+  padding: 1.1em 1.4em;
+  border-radius: 12px;
+  margin: 1em 0;
+  overflow-x: auto;
+}
+
+.tiptap-editor pre code {
+  background: transparent;
+  color: inherit;
+  padding: 0;
+  font-size: 0.875em;
+}
+
+.tiptap-editor strong { font-weight: 700; }
+.tiptap-editor em     { font-style: italic; }
+
+.tiptap-editor a {
+  color: #E89951;
+  text-decoration: underline;
+  text-underline-offset: 3px;
+}
+
+.tiptap-editor hr {
+  border: none;
+  border-top: 2px solid #f0efe8;
+  margin: 1.5em 0;
+}
+
+.dark .tiptap-editor hr {
+  border-top-color: rgba(255,255,255,0.08);
+}
+
+/* Placeholder */
+.tiptap-editor p.is-editor-empty:first-child::before {
+  content: attr(data-placeholder);
+  color: #c0bfb8;
+  pointer-events: none;
+  float: left;
+  height: 0;
+}
+
+.dark .tiptap-editor p.is-editor-empty:first-child::before {
+  color: #4a4a44;
+}
