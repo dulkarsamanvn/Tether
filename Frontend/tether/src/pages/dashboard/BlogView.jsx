@@ -2,6 +2,8 @@ import { AnimatePresence, motion } from 'framer-motion'
 import { useEffect, useState } from 'react'
 import { useNavigate, useParams } from 'react-router-dom'
 import api from '../../api/api'
+import BlogShare from '../../components/ui/BlogShare'
+import BookmarkButton from '../../components/ui/BookmarkButton'
 import { useAuth } from '../../hooks/useAuth'
 import '../../styles/editor.css'
 
@@ -125,6 +127,7 @@ export default function BlogView() {
   const coverUrl  = blog.featured_image ? `${STORAGE}/${blog.featured_image}` : null
   const mins      = readingTime(blog.content ?? '')
   const published = fmtDate(blog.published_at ?? blog.created_at)
+  const shareUrl = `${window.location.origin}${window.location.pathname}`
 
   return (
     <>
@@ -135,17 +138,23 @@ export default function BlogView() {
       transition={{ duration: 0.4 }}
     >
       {/* ── Back ── */}
-      <button
-        onClick={() => navigate(-1)}
-        className="flex items-center gap-1.5 mb-7 text-sm font-semibold
-          text-gray-400 hover:text-gray-700 dark:hover:text-gray-200
-          transition-colors duration-150"
-      >
-        <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 19l-7-7 7-7" />
-        </svg>
-        Back
-      </button>
+      <div className="flex flex-wrap items-center justify-between gap-4 mb-7">
+        <button
+          onClick={() => navigate(-1)}
+          className="flex items-center gap-1.5 text-sm font-semibold
+            text-gray-400 hover:text-gray-700 dark:hover:text-gray-200
+            transition-colors duration-150"
+        >
+          <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 19l-7-7 7-7" />
+          </svg>
+          Back
+        </button>
+        <div className="flex items-start gap-2">
+          <BookmarkButton key={`${blog.id}:${user?.id}`} blogId={blog.id} initialSaved={blog.is_bookmarked ?? false} />
+          <BlogShare key={blog.id} title={blog.title} url={shareUrl} />
+        </div>
+      </div>
 
       {/* ── Cover ── */}
       <motion.div

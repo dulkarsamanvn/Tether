@@ -43,6 +43,10 @@ class BlogController extends Controller
         // Try to resolve logged-in user (optional auth)
         $user = auth('sanctum')->user();
 
+        $blog->setAttribute('is_bookmarked', $user
+            ? $blog->bookmarkedBy()->where('users.id', $user->id)->exists()
+            : false);
+
         // Don't count views from the blog author
         $isAuthor = $user && $user->id === $blog->user_id;
 

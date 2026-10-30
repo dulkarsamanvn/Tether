@@ -2,6 +2,7 @@
 
 use App\Http\Controllers\AuthController;
 use App\Http\Controllers\BlogController;
+use App\Http\Controllers\BookmarkController;
 use App\Http\Controllers\CategoryController;
 use App\Http\Controllers\CommentController;
 use App\Http\Controllers\TagController;
@@ -33,6 +34,10 @@ Route::middleware('auth:sanctum')->group(function () {
     //blogs of logged in user
     Route::get('/my-blogs',      [BlogController::class, 'myBlogs']);
     Route::get('/my-blogs/{id}', [BlogController::class, 'myBlog']);
+    // Private saved blogs
+    Route::get('/bookmarks', [BookmarkController::class, 'index']);
+    Route::put('/blogs/{id}/bookmark', [BookmarkController::class, 'store']);
+    Route::delete('/blogs/{id}/bookmark', [BookmarkController::class, 'destroy']);
     //comment routes
     Route::post('/blogs/{id}/comments', [CommentController::class, 'store']);
     Route::delete('/comments/{id}', [CommentController::class, 'destroy']);

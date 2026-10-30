@@ -75,4 +75,9 @@ class Blog extends Model
     {
         return $this->belongsToMany(Tag::class, 'blog_tag');
     }
+
+    public function bookmarkedBy(): BelongsToMany
+    {
+        return $this->belongsToMany(User::class, 'bookmarks')->withTimestamps();
+    }
 }

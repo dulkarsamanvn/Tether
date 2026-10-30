@@ -27,6 +27,16 @@ const navItems = [
     ),
   },
   {
+    label: 'Saved Blogs',
+    to: '/dashboard/saved',
+    icon: (
+      <svg className="w-5 h-5 shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.8}
+          d="M6 4a1 1 0 0 1 1-1h10a1 1 0 0 1 1 1v17l-6-4-6 4V4Z" />
+      </svg>
+    ),
+  },
+  {
     label: 'Write',
     to: '/dashboard/write',
     icon: (

@@ -8,6 +8,8 @@ A blog management system with a **Laravel** API backend and a **React** frontend
 - Create, edit, delete and view blogs 
 - Featured image upload
 - Comments on blogs
+- Share blogs via copy link, Twitter / X, LinkedIn and WhatsApp
+- Save published blogs to a private, paginated "Saved Blogs" reading list
 - "My Blogs" dashboard for each user
 
 ### Coming Soon
