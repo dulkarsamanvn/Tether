@@ -14,6 +14,7 @@ class BookmarkController extends Controller
         $blogs = $request->user()->savedBlogs()
             ->where('status', 'published')
             ->with(['user:id,name', 'categories', 'tags'])
+            ->withCount('likedBy as likes_count')
             ->orderByPivot('created_at', 'desc')
             ->orderByPivot('id', 'desc')
             ->paginate(10);

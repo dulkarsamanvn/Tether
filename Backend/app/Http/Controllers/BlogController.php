@@ -14,6 +14,7 @@ class BlogController extends Controller
     public function index(Request $request)
     {
         $query = Blog::with(['user', 'categories', 'tags'])
+            ->withCount('likedBy as likes_count')
             ->where('status','published');
 
         // Filter by category slug
@@ -30,7 +31,7 @@ class BlogController extends Controller
             });
         }
 
-        $blogs = $query->latest('published_at')->paginate(10);
+        $blogs = $query->latest('published_at')->paginate(12);
 
         return response()->json($blogs);
     }
@@ -38,13 +39,19 @@ class BlogController extends Controller
     //view one published blog 
     public function show(Request $request, $id)
     {
-        $blog = Blog::with(['user', 'categories', 'tags'])->where('status', 'published')->findOrFail($id);
+        $blog = Blog::with(['user', 'categories', 'tags'])
+            ->withCount('likedBy as likes_count')
+            ->where('status', 'published')->findOrFail($id);
 
         // Try to resolve logged-in user (optional auth)
         $user = auth('sanctum')->user();
 
         $blog->setAttribute('is_bookmarked', $user
             ? $blog->bookmarkedBy()->where('users.id', $user->id)->exists()
+            : false);
+
+        $blog->setAttribute('is_liked', $user
+            ? $blog->likedBy()->where('users.id', $user->id)->exists()
             : false);
 
         // Don't count views from the blog author

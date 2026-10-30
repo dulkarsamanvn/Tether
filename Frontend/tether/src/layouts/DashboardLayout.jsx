@@ -2,6 +2,7 @@ import { AnimatePresence, motion } from 'framer-motion'
 import { useRef, useState } from 'react'
 import { NavLink, Outlet, useNavigate } from 'react-router-dom'
 import api from '../api/api'
+import FontPicker from '../components/ui/FontPicker'
 import { useAuth } from '../hooks/useAuth'
 import { useTheme } from '../hooks/useTheme'
 
@@ -315,7 +316,7 @@ export default function DashboardLayout() {
             </AnimatePresence>
           </div>
 
-          {/* RIGHT: search + theme + logout */}
+          {/* RIGHT: search + theme + font + logout */}
           <div className="flex items-center gap-2">
 
             {/* ── Search bar ── */}
@@ -420,6 +421,8 @@ export default function DashboardLayout() {
                 )}
               </AnimatePresence>
             </motion.button>
+
+            <FontPicker />
 
             {/* Logout */}
             <motion.button

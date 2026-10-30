@@ -10,6 +10,8 @@ A blog management system with a **Laravel** API backend and a **React** frontend
 - Comments on blogs
 - Share blogs via copy link, Twitter / X, LinkedIn and WhatsApp
 - Save published blogs to a private, paginated "Saved Blogs" reading list
+- Like or unlike published blogs, with like counts on posts and blog cards
+- App-wide font picker with 10 fonts, Poppins by default, and a saved browser preference
 - "My Blogs" dashboard for each user
 
 ### Coming Soon
@@ -66,6 +68,16 @@ php artisan serve
 ```
 
 The API runs at `http://127.0.0.1:8000`.
+
+To add five published sample blogs for every existing user, run from `Backend`:
+
+```bash
+php artisan db:seed --class=SampleBlogSeeder
+```
+
+This creates no accounts and preserves existing posts. Re-running it skips samples
+already created, including edited or soft-deleted samples. Matching existing
+categories are attached automatically.
 
 ### 2. Frontend setup
 

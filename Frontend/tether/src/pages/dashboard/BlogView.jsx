@@ -4,6 +4,7 @@ import { useNavigate, useParams } from 'react-router-dom'
 import api from '../../api/api'
 import BlogShare from '../../components/ui/BlogShare'
 import BookmarkButton from '../../components/ui/BookmarkButton'
+import LikeButton from '../../components/ui/LikeButton'
 import { useAuth } from '../../hooks/useAuth'
 import '../../styles/editor.css'
 
@@ -264,6 +265,12 @@ export default function BlogView() {
             </svg>
             {blog.view_count ?? 0} views
           </span>
+          <LikeButton
+            key={`${blog.id}:${user?.id}`}
+            blogId={blog.id}
+            initialLiked={blog.is_liked ?? false}
+            initialCount={blog.likes_count ?? 0}
+          />
         </div>
       </motion.header>
 

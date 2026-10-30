@@ -28,7 +28,7 @@
   --color-amber-dark:   #d49a3e;
 
   /* ── Font ── */
-  --font-sans: 'Inter', system-ui, sans-serif;
+  --font-sans: 'Poppins', system-ui, sans-serif;
 
   /* ── Animations ── */
   --animate-float-slow:   float-slow 8s ease-in-out infinite;
@@ -87,9 +87,13 @@
 
 body {
   margin: 0;
-  font-family: 'Inter', system-ui, sans-serif;
+  font-family: var(--font-sans);
   -webkit-font-smoothing: antialiased;
   -moz-osx-font-smoothing: grayscale;
+}
+
+pre, code, kbd, samp {
+  font-family: inherit;
 }
 
 /* Smooth theme transitions */

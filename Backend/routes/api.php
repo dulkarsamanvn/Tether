@@ -5,6 +5,7 @@ use App\Http\Controllers\BlogController;
 use App\Http\Controllers\BookmarkController;
 use App\Http\Controllers\CategoryController;
 use App\Http\Controllers\CommentController;
+use App\Http\Controllers\LikeController;
 use App\Http\Controllers\TagController;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Route;
@@ -38,6 +39,9 @@ Route::middleware('auth:sanctum')->group(function () {
     Route::get('/bookmarks', [BookmarkController::class, 'index']);
     Route::put('/blogs/{id}/bookmark', [BookmarkController::class, 'store']);
     Route::delete('/blogs/{id}/bookmark', [BookmarkController::class, 'destroy']);
+    // Blog likes
+    Route::put('/blogs/{id}/like', [LikeController::class, 'store']);
+    Route::delete('/blogs/{id}/like', [LikeController::class, 'destroy']);
     //comment routes
     Route::post('/blogs/{id}/comments', [CommentController::class, 'store']);
     Route::delete('/comments/{id}', [CommentController::class, 'destroy']);

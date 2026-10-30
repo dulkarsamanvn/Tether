@@ -39,6 +39,7 @@ class Blog extends Model
             'is_featured' => 'boolean',
             'allow_comments' => 'boolean',
             'view_count' => 'integer',
+            'likes_count' => 'integer',
         ];
     }
 
@@ -79,5 +80,10 @@ class Blog extends Model
     public function bookmarkedBy(): BelongsToMany
     {
         return $this->belongsToMany(User::class, 'bookmarks')->withTimestamps();
+    }
+
+    public function likedBy(): BelongsToMany
+    {
+        return $this->belongsToMany(User::class, 'blog_likes')->withTimestamps();
     }
 }

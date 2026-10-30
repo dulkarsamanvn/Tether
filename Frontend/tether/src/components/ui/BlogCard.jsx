@@ -91,7 +91,7 @@ export default function BlogCard({ blog, index = 0 }) {
         </p>
 
         {/* Footer */}
-        <div className="flex items-center justify-between pt-4 border-t border-gray-100 dark:border-gray-800">
+        <div className="flex flex-wrap items-center justify-between gap-3 pt-4 border-t border-gray-100 dark:border-gray-800">
           <div className="flex items-center gap-2">
             <div className="w-7 h-7 rounded-full flex items-center justify-center shrink-0" style={{ background: '#A5CF83' }}>
               <span className="text-xs font-bold" style={{ color: '#18190F' }}>
@@ -104,6 +104,13 @@ export default function BlogCard({ blog, index = 0 }) {
           </div>
 
           <div className="flex items-center gap-3 text-gray-400 dark:text-gray-600 text-xs">
+            <span className="flex items-center gap-1" aria-label={`${blog.likes_count ?? 0} likes`}>
+              <svg aria-hidden="true" className="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2}
+                  d="M20.84 4.61a5.5 5.5 0 0 0-7.78 0L12 5.67l-1.06-1.06a5.5 5.5 0 0 0-7.78 7.78L12 21.23l8.84-8.84a5.5 5.5 0 0 0 0-7.78Z" />
+              </svg>
+              {blog.likes_count ?? 0}
+            </span>
             <span className="flex items-center gap-1">
               <svg className="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                 <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 12a3 3 0 11-6 0 3 3 0 016 0z" />
