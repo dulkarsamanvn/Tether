@@ -4,6 +4,7 @@ use App\Http\Controllers\AuthController;
 use App\Http\Controllers\AuthorController;
 use App\Http\Controllers\ProfileController;
 use App\Http\Controllers\FollowController;
+use App\Http\Controllers\EditorialSuggestionController;
 use App\Http\Controllers\BlogController;
 use App\Http\Controllers\BookmarkController;
 use App\Http\Controllers\CategoryController;
@@ -34,6 +35,7 @@ Route::get('/tags', [TagController::class, 'index']);
 
 // Protected routes: login required
 Route::middleware('auth:sanctum')->group(function () {
+    Route::post('/editor/suggestions', [EditorialSuggestionController::class, 'store'])->middleware('throttle:editor-suggestions');
     Route::post('/logout', [AuthController::class, 'logout']);
     Route::get('/profile', [ProfileController::class, 'show']);
     Route::put('/profile', [ProfileController::class, 'update']);
