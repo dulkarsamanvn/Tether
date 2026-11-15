@@ -8,6 +8,7 @@ import { useCallback, useEffect, useMemo, useState } from 'react'
 import { Navigate, useNavigate, useParams } from 'react-router-dom'
 import api from '../../api/api'
 import TimezonePicker from '../../components/ui/TimezonePicker'
+import EditorialSuggestions from '../../components/ui/EditorialSuggestions'
 import { useAuth } from '../../hooks/useAuth'
 import { useEditorAutosave } from '../../hooks/useEditorAutosave'
 import { blogSnapshot, listEditorDrafts, removeEditorDraft, snapshotKey } from '../../utils/editorDrafts'
@@ -619,6 +620,14 @@ function BlogEditorSession({ id, userId }) {
             />
             <div className="h-px bg-gray-100 dark:bg-gray-800 mt-1" />
           </div>
+
+          <EditorialSuggestions
+            text={editor?.getText({ blockSeparator: '\n' }) ?? ''}
+            title={form.title}
+            excerpt={form.excerpt}
+            onApply={setField}
+            disabled={saving || recovering || recoveryChoices.length > 0 || autosave.navigation.state === 'blocked'}
+          />
 
           {/* Rich-text editor card */}
           <div className="bg-white dark:bg-gray-900 rounded-2xl border border-gray-100 dark:border-gray-800 overflow-hidden shadow-sm">

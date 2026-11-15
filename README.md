@@ -19,6 +19,48 @@ A blog management system with a **Laravel** API backend and a **React** frontend
 - Author profiles with editable names, bios, profile photos, and public article lists
 - Follow/unfollow authors, public follower counts, and a private following feed
 - Author discovery with name/bio search, sorting, and follow controls
+- AI title and excerpt suggestions with individual review and apply controls
+
+### AI title and excerpt suggestions
+
+In the blog editor, write at least 80 characters and choose **Suggest with AI**.
+Laravel sends the current title and draft's plain text to OpenAI's Responses API
+and validates three title options (up to 120 characters each) and one excerpt
+(up to 300 characters). The model is asked to use the draft's language and avoid
+invented claims. Review each result and use **Use title** or **Use excerpt** to
+replace that field. Applied changes enter the existing autosave/recovery flow;
+generation itself never saves, changes status, schedules, or publishes a post.
+
+Configure these values in `Backend/.env` (keep the real key out of Git):
+
+```dotenv
+OPENAI_API_KEY=your_api_key_here
+OPENAI_MODEL=gpt-5.4-mini
+```
+
+Then run `php artisan config:clear` from `Backend` and restart any long-running
+Laravel server. The API key stays on the backend; do not put it in a `VITE_`
+variable. You need an OpenAI API project with billing/credits and model access.
+Without a key, the editor shows an unavailable message and writing still works.
+No new dependencies or database migrations are required.
+
+Authenticated API: `POST /api/editor/suggestions` with optional `title` and
+required plain-text `content` (80-20,000 characters). Limits are 5 requests per
+minute and 50 per day per account, using Laravel's cache. The editor sends only
+the first 20,000 characters for longer drafts and shows that limit. Requests run
+on demand with a 30-second backend timeout and no automatic retries. No queue
+worker or scheduler is needed for this interactive feature.
+
+Suggestions are not automatically applied. Editing the draft text makes existing
+suggestions stale and disables their apply buttons until regenerated. Authors
+can cancel a pending request; late responses cannot overwrite a newer result.
+OpenAI requests use `store: false`, which disables stored response retrieval;
+this does not claim zero provider retention. Drafts, credentials, and raw
+provider errors are not logged by this feature. Tests use fake HTTP responses,
+including refusals, invalid output, outages, timeouts, and per-account limits.
+
+API references: [Responses API](https://developers.openai.com/api/reference/resources/responses/methods/create)
+and [Structured Outputs](https://developers.openai.com/api/docs/guides/structured-outputs).
 
 ### Discovering authors
 
