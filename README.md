@@ -17,6 +17,24 @@ A blog management system with a **Laravel** API backend and a **React** frontend
 - Browser autosave and draft recovery, including selected cover images
 - Scheduled publishing with timezone selection, rescheduling, and cancellation
 - Author profiles with editable names, bios, profile photos, and public article lists
+- Follow/unfollow authors, public follower counts, and a private following feed
+
+### Following authors
+
+Open an author's profile and select **Follow**. Select **Following** on that
+profile to unfollow. Profiles display follower and following counts. Sign-in is
+required to follow, and users cannot follow themselves.
+
+The sidebar's **Following** page shows the latest published posts from followed
+authors and an **Authors you follow** view for managing follows. The feed and
+author list belong to the signed-in account. Drafts, scheduled posts, deleted
+posts, and inactive authors are excluded. Previously scheduled posts appear
+automatically once published. Run `php artisan migrate` for the follows table.
+
+Authenticated APIs: `PUT /api/authors/{id}/follow`,
+`DELETE /api/authors/{id}/follow`, `GET /api/following`, and
+`GET /api/following/feed`. Follow/unfollow are idempotent; list endpoints are
+paginated. Public profiles include counts and the current viewer's follow state.
 
 ### Author profiles
 

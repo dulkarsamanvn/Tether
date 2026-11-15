@@ -12,6 +12,7 @@ import SavedBlogs from './pages/dashboard/SavedBlogs'
 import TrashBlogs from './pages/dashboard/TrashBlogs'
 import AuthorProfile from './pages/dashboard/AuthorProfile'
 import EditProfile from './pages/dashboard/EditProfile'
+import Following from './pages/dashboard/Following'
 
 // A data router lets the editor finish a pending autosave before dashboard navigation.
 const router = createBrowserRouter([
@@ -27,6 +28,7 @@ const router = createBrowserRouter([
       { path: 'trash', element: <TrashBlogs /> },
       { path: 'authors/:authorId', element: <AuthorProfile /> },
       { path: 'profile', element: <EditProfile /> },
+      { path: 'following', element: <Following /> },
       { path: 'blogs/:id/view', element: <BlogView /> },
       { path: 'write', element: <BlogEditor /> },
       { path: 'blogs/:id/edit', element: <BlogEditor /> },

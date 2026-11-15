@@ -11,6 +11,7 @@ use Laravel\Sanctum\HasApiTokens;
 use Illuminate\Database\Eloquent\Relations\BelongsToMany;
 use Illuminate\Database\Eloquent\Relations\HasMany;
 use Illuminate\Database\Eloquent\Casts\Attribute;
+use Illuminate\Database\Eloquent\Builder;
 
 class User extends Authenticatable
 {
@@ -75,5 +76,24 @@ class User extends Authenticatable
     public function likedBlogs(): BelongsToMany
     {
         return $this->belongsToMany(Blog::class, 'blog_likes')->withTimestamps();
+    }
+
+    public function following(): BelongsToMany
+    {
+        return $this->belongsToMany(self::class, 'author_follows', 'follower_id', 'author_id')->withTimestamps();
+    }
+
+    public function followers(): BelongsToMany
+    {
+        return $this->belongsToMany(self::class, 'author_follows', 'author_id', 'follower_id')->withTimestamps();
+    }
+
+    public function scopeWithProfileCounts(Builder $query): Builder
+    {
+        return $query->withCount([
+            'blogs as published_blogs_count' => fn ($blogs) => $blogs->where('status', 'published'),
+            'followers' => fn ($users) => $users->where('is_active', true),
+            'following' => fn ($users) => $users->where('is_active', true),
+        ]);
     }
 }

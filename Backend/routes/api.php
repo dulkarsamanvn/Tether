@@ -3,6 +3,7 @@
 use App\Http\Controllers\AuthController;
 use App\Http\Controllers\AuthorController;
 use App\Http\Controllers\ProfileController;
+use App\Http\Controllers\FollowController;
 use App\Http\Controllers\BlogController;
 use App\Http\Controllers\BookmarkController;
 use App\Http\Controllers\CategoryController;
@@ -33,6 +34,10 @@ Route::middleware('auth:sanctum')->group(function () {
     Route::post('/logout', [AuthController::class, 'logout']);
     Route::get('/profile', [ProfileController::class, 'show']);
     Route::put('/profile', [ProfileController::class, 'update']);
+    Route::put('/authors/{id}/follow', [FollowController::class, 'store'])->whereNumber('id');
+    Route::delete('/authors/{id}/follow', [FollowController::class, 'destroy'])->whereNumber('id');
+    Route::get('/following', [FollowController::class, 'index']);
+    Route::get('/following/feed', [FollowController::class, 'feed']);
 
     //blog routes
     Route::post('/blogs', [BlogController::class, 'store']);

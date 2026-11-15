@@ -10,8 +10,10 @@ class AuthorController extends Controller
     public function show($id): JsonResponse
     {
         $author = User::select(User::PROFILE_FIELDS)->where('is_active', true)
-            ->withCount(['blogs as published_blogs_count' => fn ($query) => $query->where('status', 'published')])
+            ->withProfileCounts()
             ->findOrFail($id);
+        $viewer = auth('sanctum')->user();
+        $author->setAttribute('is_following', $viewer ? $viewer->following()->where('users.id', $author->id)->exists() : false);
 
         return response()->json($author);
     }

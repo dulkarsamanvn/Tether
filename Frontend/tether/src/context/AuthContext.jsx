@@ -1,12 +1,14 @@
-import { createContext, useContext, useState } from 'react'
+import { createContext, useContext, useRef, useState } from 'react'
 
 const AuthContext = createContext(null)
 
 export function AuthProvider({ children }) {
   const [user, setUser]   = useState(() => JSON.parse(localStorage.getItem('auth_user')) ?? null)
   const [token, setToken] = useState(() => localStorage.getItem('auth_token') ?? null)
+  const userRef = useRef(user)
 
   const login = (userData, authToken) => {
+    userRef.current = userData
     setUser(userData)
     setToken(authToken)
     localStorage.setItem('auth_user',  JSON.stringify(userData))
@@ -14,6 +16,7 @@ export function AuthProvider({ children }) {
   }
 
   const logout = () => {
+    userRef.current = null
     setUser(null)
     setToken(null)
     localStorage.removeItem('auth_user')
@@ -21,7 +24,10 @@ export function AuthProvider({ children }) {
   }
 
   const updateUser = (userData) => {
-    const updated = { ...user, ...userData }
+    // A slow profile save must not overwrite a different account after sign-in.
+    if (!userRef.current || userRef.current.id !== userData.id) return
+    const updated = { ...userRef.current, ...userData }
+    userRef.current = updated
     setUser(updated)
     localStorage.setItem('auth_user', JSON.stringify(updated))
   }

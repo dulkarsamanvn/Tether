@@ -3,6 +3,7 @@ import { Link, useParams } from 'react-router-dom'
 import api from '../../api/api'
 import Avatar from '../../components/ui/Avatar'
 import BlogCard from '../../components/ui/BlogCard'
+import FollowButton from '../../components/ui/FollowButton'
 import { useAuth } from '../../hooks/useAuth'
 
 const buttonClass = 'rounded-xl border border-gray-200 px-4 py-2 text-sm font-semibold text-gray-600 hover:border-bordo focus-visible:outline-bordo disabled:cursor-not-allowed disabled:opacity-40 dark:border-gray-700 dark:text-gray-300'
@@ -51,9 +52,14 @@ function AuthorProfilePage({ authorId, page, onPageChange, onRefresh }) {
             <p className="mt-1 text-sm text-gray-500 dark:text-gray-400">Joined {new Date(author.created_at).toLocaleDateString(undefined, { month: 'long', year: 'numeric' })}</p>
           </div>
           {user?.id === author.id && <Link to="/dashboard/profile" className={buttonClass}>Edit profile</Link>}
+          <FollowButton key={`${author.id}:${user?.id ?? 'guest'}`} authorId={author.id} initialFollowing={author.is_following} onChange={(follow) => setResult((previous) => ({ ...previous, author: { ...previous.author, ...follow } }))} />
         </div>
         {author.bio && <p className="mt-6 max-w-3xl whitespace-pre-wrap break-words text-sm leading-relaxed text-gray-600 dark:text-gray-300">{author.bio}</p>}
-        <p className="mt-5 text-sm font-semibold text-gray-700 dark:text-gray-200">{author.published_blogs_count} published {author.published_blogs_count === 1 ? 'post' : 'posts'}</p>
+        <div className="mt-5 flex flex-wrap gap-x-6 gap-y-2 text-sm text-gray-600 dark:text-gray-300">
+          <p><span className="font-bold text-gray-900 dark:text-white">{author.published_blogs_count}</span> published {author.published_blogs_count === 1 ? 'post' : 'posts'}</p>
+          <p><span className="font-bold text-gray-900 dark:text-white">{author.followers_count}</span> {author.followers_count === 1 ? 'follower' : 'followers'}</p>
+          <p><span className="font-bold text-gray-900 dark:text-white">{author.following_count}</span> following</p>
+        </div>
       </section>
       <h2 className="mb-5 text-lg font-bold text-gray-900 dark:text-white">Published posts</h2>
       {blogs.data.length === 0

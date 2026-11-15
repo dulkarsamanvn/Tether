@@ -29,6 +29,15 @@ const navItems = [
     ),
   },
   {
+    label: 'Following',
+    to: '/dashboard/following',
+    icon: (
+      <svg aria-hidden="true" className="w-5 h-5 shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+        <circle cx="9" cy="8" r="3" strokeWidth={1.8} /><path d="M3 21v-2a6 6 0 0112 0v2M16 4a3 3 0 010 6m3 11v-2a6 6 0 00-3-5" strokeWidth={1.8} strokeLinecap="round" />
+      </svg>
+    ),
+  },
+  {
     label: 'Saved Blogs',
     to: '/dashboard/saved',
     icon: (
