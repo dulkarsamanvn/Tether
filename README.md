@@ -26,7 +26,8 @@ profile to unfollow. Profiles display follower and following counts. Sign-in is
 required to follow, and users cannot follow themselves.
 
 The sidebar's **Following** page shows the latest published posts from followed
-authors and an **Authors you follow** view for managing follows. The feed and
+authors and an **Authors you follow** view for managing follows. Unfollowing
+from this view asks for confirmation before removing the author. The feed and
 author list belong to the signed-in account. Drafts, scheduled posts, deleted
 posts, and inactive authors are excluded. Previously scheduled posts appear
 automatically once published. Run `php artisan migrate` for the follows table.

@@ -59,7 +59,7 @@ function FollowingPage({ tab, page, onPageChange, onRefresh }) {
         <Link to={`/dashboard/authors/${item.id}`} className="mb-4 flex items-center gap-3 rounded-xl focus-visible:outline-bordo"><Avatar user={item} className="h-12 w-12 text-lg" /><h2 className="min-w-0 break-words font-bold text-gray-900 hover:text-bordo dark:text-white">{item.name}</h2></Link>
         {item.bio && <p className="mb-4 line-clamp-3 whitespace-pre-wrap break-words text-sm text-gray-500 dark:text-gray-400">{item.bio}</p>}
         <p className="mb-5 mt-auto text-xs text-gray-400">{item.published_blogs_count} posts · {item.followers_count} followers</p>
-        <FollowButton authorId={item.id} initialFollowing onChange={(follow) => { if (!follow.is_following) onRefresh() }} />
+        <FollowButton authorId={item.id} authorName={item.name} initialFollowing confirmUnfollow onChange={(follow) => { if (!follow.is_following) onRefresh() }} />
       </article>)}
     </div>
     {data.last_page > 1 && <nav aria-label="Following pagination" className="mt-8 flex flex-wrap items-center justify-center gap-4">
