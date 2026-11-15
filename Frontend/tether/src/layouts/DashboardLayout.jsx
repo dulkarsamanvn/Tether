@@ -109,7 +109,7 @@ export default function DashboardLayout() {
   }
 
   return (
-    <div className="min-h-screen flex bg-cream dark:bg-gray-950 transition-colors duration-300">
+    <div className="flex h-dvh overflow-hidden bg-cream dark:bg-gray-950 transition-colors duration-300">
 
       {/* ── Mobile backdrop ── */}
       <AnimatePresence>
@@ -129,7 +129,7 @@ export default function DashboardLayout() {
         animate={{ width: collapsed ? 72 : 256 }}
         transition={{ duration: 0.25, ease: 'easeInOut' }}
         className={`
-          fixed lg:static inset-y-0 left-0 z-30 flex flex-col shrink-0 overflow-hidden
+          fixed lg:static inset-y-0 left-0 z-30 flex h-dvh min-h-0 flex-col shrink-0 overflow-hidden
           bg-white dark:bg-green
           border-r border-gray-200 dark:border-green-dark/60
           ${mobileOpen ? 'translate-x-0' : '-translate-x-full lg:translate-x-0'}
@@ -181,7 +181,7 @@ export default function DashboardLayout() {
         </div>
 
         {/* ── Nav ── */}
-        <nav className="flex-1 px-2 py-4 space-y-1 overflow-y-auto overflow-x-hidden">
+        <nav className="min-h-0 flex-1 px-2 py-4 space-y-1 overflow-y-auto overflow-x-hidden overscroll-contain">
           {navItems.map((item) => (
             <NavLink
               key={item.to}
@@ -283,10 +283,10 @@ export default function DashboardLayout() {
       {/* ══════════════════════════════════
           MAIN AREA
       ══════════════════════════════════ */}
-      <div className="flex-1 flex flex-col min-w-0">
+      <div className="flex min-h-0 min-w-0 flex-1 flex-col">
 
         {/* ── Topbar ── */}
-        <header className="sticky top-0 z-10 h-16 flex items-center justify-between px-4
+        <header className="sticky top-0 z-10 h-16 shrink-0 flex items-center justify-between px-4
           bg-white/90 dark:bg-gray-900/80 backdrop-blur-md
           border-b border-gray-200 dark:border-gray-800
           transition-colors duration-300">
@@ -481,7 +481,7 @@ export default function DashboardLayout() {
         </header>
 
         {/* ── Page content ── */}
-        <main className="flex-1 p-6 overflow-auto">
+        <main className="min-h-0 flex-1 overflow-auto overscroll-contain p-6">
           <Outlet />
         </main>
       </div>
