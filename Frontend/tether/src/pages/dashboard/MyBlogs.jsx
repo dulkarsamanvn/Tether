@@ -1,6 +1,6 @@
 import { AnimatePresence, motion } from 'framer-motion'
 import { useEffect, useState } from 'react'
-import { useNavigate } from 'react-router-dom'
+import { Link, useNavigate } from 'react-router-dom'
 import api from '../../api/api'
 
 // ── Status badge ───────────────────────────────────────────────────────────
@@ -32,13 +32,16 @@ function StatusBadge({ status }) {
 }
 
 // ── Confirm delete modal ───────────────────────────────────────────────────
-function DeleteModal({ blog, onConfirm, onCancel, loading }) {
+function DeleteModal({ blog, onConfirm, onCancel, loading, error }) {
   return (
     <motion.div
       className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/40 backdrop-blur-sm"
       initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }}
     >
       <motion.div
+        role="dialog"
+        aria-modal="true"
+        aria-labelledby="trash-confirm-title"
         className="bg-white dark:bg-gray-900 rounded-2xl shadow-2xl p-7 max-w-sm w-full border border-gray-100 dark:border-gray-800"
         initial={{ scale: 0.9, opacity: 0, y: 16 }}
         animate={{ scale: 1,   opacity: 1, y: 0 }}
@@ -51,13 +54,15 @@ function DeleteModal({ blog, onConfirm, onCancel, loading }) {
               d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16"/>
           </svg>
         </div>
-        <h3 className="text-base font-bold text-gray-900 dark:text-white mb-1">Delete Blog?</h3>
+        <h3 id="trash-confirm-title" className="text-base font-bold text-gray-900 dark:text-white mb-1">Move Blog to Trash?</h3>
         <p className="text-sm text-gray-400 dark:text-gray-500 mb-6 leading-relaxed">
-          "<span className="font-medium text-gray-600 dark:text-gray-300">{blog?.title}</span>" will be permanently deleted. This cannot be undone.
+          "<span className="font-medium text-gray-600 dark:text-gray-300">{blog?.title}</span>" will be hidden from readers. You can restore it from Trash at any time.
         </p>
+        {error && <p role="alert" className="mb-4 text-sm text-red-500">{error}</p>}
         <div className="flex gap-3">
           <button
             onClick={onCancel}
+            disabled={loading}
             className="flex-1 py-2.5 rounded-xl border-2 border-gray-100 dark:border-gray-800
               text-gray-500 dark:text-gray-400 text-sm font-semibold
               hover:border-gray-200 dark:hover:border-gray-700 transition-colors"
@@ -78,7 +83,7 @@ function DeleteModal({ blog, onConfirm, onCancel, loading }) {
                 <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4z"/>
               </svg>
             ) : null}
-            Delete
+            {loading ? 'Moving...' : 'Move to Trash'}
           </button>
         </div>
       </motion.div>
@@ -88,7 +93,6 @@ function DeleteModal({ blog, onConfirm, onCancel, loading }) {
 
 // ── Blog row ──────────────────────────────────────────────────────────────
 function BlogRow({ blog, index, onDelete }) {
-  const [menuOpen, setMenuOpen] = useState(false)
   const navigate = useNavigate()
 
   const formattedDate = blog.created_at
@@ -162,7 +166,7 @@ function BlogRow({ blog, index, onDelete }) {
 
       {/* Actions */}
       <td className="py-4 px-4 whitespace-nowrap">
-        <div className="flex items-center gap-2 opacity-0 group-hover:opacity-100 transition-opacity duration-150">
+        <div className="flex items-center gap-2">
           {/* Edit */}
           <button
             onClick={() => navigate(`/dashboard/blogs/${blog.id}/edit`)}
@@ -181,7 +185,8 @@ function BlogRow({ blog, index, onDelete }) {
             onClick={() => onDelete(blog)}
             className="p-1.5 rounded-lg text-gray-400 hover:text-red-500 hover:bg-red-50
               dark:hover:text-red-400 dark:hover:bg-red-900/20 transition-all duration-150"
-            title="Delete"
+            title="Move to Trash"
+            aria-label={`Move ${blog.title} to Trash`}
           >
             <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
               <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2}
@@ -207,6 +212,8 @@ export default function MyBlogs() {
   const [search, setSearch]         = useState('')
   const [toDelete, setToDelete]     = useState(null)
   const [deleting, setDeleting]     = useState(false)
+  const [deleteError, setDeleteError] = useState(null)
+  const [notice, setNotice] = useState(null)
 
   useEffect(() => { fetchBlogs(page) }, [page, statusFilter])
 
@@ -217,6 +224,10 @@ export default function MyBlogs() {
       const params = new URLSearchParams({ page: p })
       if (statusFilter !== 'all') params.append('status', statusFilter)
       const { data } = await api.get(`/my-blogs?${params}`)
+      if (p > data.last_page) {
+        setPage(Math.max(1, data.last_page))
+        return
+      }
       setBlogs(data.data)
       setMeta(data)
     } catch {
@@ -227,14 +238,23 @@ export default function MyBlogs() {
   }
 
   const handleDelete = async () => {
-    if (!toDelete) return
+    if (!toDelete || deleting) return
     setDeleting(true)
+    setDeleteError(null)
     try {
       await api.delete(`/blogs/${toDelete.id}`)
       setBlogs((prev) => prev.filter((b) => b.id !== toDelete.id))
       setToDelete(null)
-    } catch {
-      // could show toast here
+      setNotice('Blog moved to Trash.')
+      if (blogs.length === 1 && page > 1) {
+        setPage(page - 1)
+      } else {
+        await fetchBlogs(page)
+      }
+    } catch (err) {
+      setDeleteError(err.response?.status === 404
+        ? 'This post is no longer available. Refresh My Blogs to see the latest posts.'
+        : 'Failed to move this blog to Trash. Please try again.')
     } finally {
       setDeleting(false)
     }
@@ -255,7 +275,7 @@ export default function MyBlogs() {
 
       {/* ── Header ── */}
       <motion.div
-        className="flex items-center justify-between mb-6"
+        className="flex flex-wrap items-center justify-between gap-4 mb-6"
         initial={{ opacity: 0, y: -12 }}
         animate={{ opacity: 1, y: 0 }}
         transition={{ duration: 0.4 }}
@@ -267,18 +287,29 @@ export default function MyBlogs() {
           </p>
         </div>
 
-        <motion.button
-          onClick={() => navigate('/dashboard/write')}
-          whileHover={{ scale: 1.02 }} whileTap={{ scale: 0.97 }}
-          className="flex items-center gap-2 px-4 py-2.5 rounded-xl text-sm font-bold shadow-md shadow-bordo/20 transition-colors"
-          style={{ background: '#E89951', color: '#18190F' }}
-        >
-          <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2.2} d="M12 4v16m8-8H4"/>
-          </svg>
-          New Blog
-        </motion.button>
+        <div className="flex items-center gap-3">
+          <Link to="/dashboard/trash" className="rounded-xl border border-gray-200 px-4 py-2.5 text-sm font-semibold text-gray-600 hover:border-bordo focus-visible:outline-bordo dark:border-gray-700 dark:text-gray-300">
+            Trash
+          </Link>
+          <motion.button
+            onClick={() => navigate('/dashboard/write')}
+            whileHover={{ scale: 1.02 }} whileTap={{ scale: 0.97 }}
+            className="flex items-center gap-2 px-4 py-2.5 rounded-xl text-sm font-bold shadow-md shadow-bordo/20 transition-colors"
+            style={{ background: '#E89951', color: '#18190F' }}
+          >
+            <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2.2} d="M12 4v16m8-8H4"/>
+            </svg>
+            New Blog
+          </motion.button>
+        </div>
       </motion.div>
+
+      {notice && (
+        <p role="status" className="mb-5 rounded-xl border border-green-200 bg-green-50 px-5 py-4 text-sm text-green-800 dark:border-green-800 dark:bg-green-950/30 dark:text-green-200">
+          {notice} <Link to="/dashboard/trash" className="font-semibold underline">Open Trash to restore it.</Link>
+        </p>
+      )}
 
       {/* ── Stat cards ── */}
       <motion.div
@@ -407,7 +438,7 @@ export default function MyBlogs() {
               </thead>
               <tbody>
                 {filtered.map((blog, i) => (
-                  <BlogRow key={blog.id} blog={blog} index={i} onDelete={setToDelete} />
+                  <BlogRow key={blog.id} blog={blog} index={i} onDelete={(blog) => { setDeleteError(null); setToDelete(blog) }} />
                 ))}
               </tbody>
             </table>
@@ -512,8 +543,9 @@ export default function MyBlogs() {
           <DeleteModal
             blog={toDelete}
             onConfirm={handleDelete}
-            onCancel={() => setToDelete(null)}
+            onCancel={() => { if (!deleting) setToDelete(null) }}
             loading={deleting}
+            error={deleteError}
           />
         )}
       </AnimatePresence>

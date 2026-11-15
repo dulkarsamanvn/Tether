@@ -9,6 +9,7 @@ import BlogView from './pages/dashboard/BlogView'
 import Home from './pages/dashboard/Home'
 import MyBlogs from './pages/dashboard/MyBlogs'
 import SavedBlogs from './pages/dashboard/SavedBlogs'
+import TrashBlogs from './pages/dashboard/TrashBlogs'
 
 function App() {
   return (
@@ -25,6 +26,7 @@ function App() {
               <Route index element={<Home />} />
               <Route path="blogs"               element={<MyBlogs />} />
               <Route path="saved"               element={<SavedBlogs />} />
+              <Route path="trash"               element={<TrashBlogs />} />
               <Route path="blogs/:id/view"       element={<BlogView />} />
               <Route path="write"               element={<BlogEditor />} />
               <Route path="blogs/:id/edit"      element={<BlogEditor />} />

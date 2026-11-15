@@ -186,14 +186,38 @@ class BlogController extends Controller
 
     }
 
-    //delete the blog
+    // Move the author's blog to Trash without removing its content or relations.
     public function destroy(Request $request,$id)
     {
         $blog = $request->user()->blogs()->findOrFail($id);
         $blog->delete();
 
         return response()->json([
-            'message' => 'Blog deleted successfully.',
+            'message' => 'Blog moved to Trash.',
+        ]);
+    }
+
+    public function trash(Request $request)
+    {
+        $blogs = $request->user()->blogs()
+            ->onlyTrashed()
+            ->with(['categories', 'tags'])
+            ->latest('deleted_at')
+            ->orderByDesc('id')
+            ->paginate(10);
+
+        return response()->json($blogs);
+    }
+
+    public function restore(Request $request, $id)
+    {
+        $blog = $request->user()->blogs()->onlyTrashed()->findOrFail($id);
+        $blog->restore();
+        $blog->load(['categories', 'tags']);
+
+        return response()->json([
+            'message' => 'Blog restored successfully.',
+            'blog' => $blog,
         ]);
     }
 

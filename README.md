@@ -13,6 +13,22 @@ A blog management system with a **Laravel** API backend and a **React** frontend
 - Like or unlike published blogs, with like counts on posts and blog cards
 - App-wide font picker with 10 fonts, Poppins by default, and a saved browser preference
 - "My Blogs" dashboard for each user
+- Private, paginated Trash with restoration of deleted blog posts
+
+### Trash and restore
+
+In **My Blogs**, choose **Move to Trash** to hide a post from readers. Open
+**Trash** from the sidebar or My Blogs and choose **Restore** to recover it.
+Only the author can list or restore their deleted posts. Posts stay in Trash
+until restored; there is no automatic expiry.
+
+Restoration preserves the original content, featured image, categories, tags,
+comments, likes, bookmarks, view count, and publication date. Published posts
+become public again immediately; drafts remain private.
+
+The authenticated API provides `GET /api/my-blogs/trash` (paginated) and
+`PUT /api/blogs/{id}/restore`. The existing `DELETE /api/blogs/{id}` moves a post
+to Trash. No additional database migration is required.
 
 ### Coming Soon
 

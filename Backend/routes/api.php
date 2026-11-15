@@ -32,8 +32,10 @@ Route::middleware('auth:sanctum')->group(function () {
     Route::post('/blogs', [BlogController::class, 'store']);
     Route::put('/blogs/{id}', [BlogController::class, 'update']);
     Route::delete('/blogs/{id}', [BlogController::class, 'destroy']);
+    Route::put('/blogs/{id}/restore', [BlogController::class, 'restore']);
     //blogs of logged in user
     Route::get('/my-blogs',      [BlogController::class, 'myBlogs']);
+    Route::get('/my-blogs/trash', [BlogController::class, 'trash']);
     Route::get('/my-blogs/{id}', [BlogController::class, 'myBlog']);
     // Private saved blogs
     Route::get('/bookmarks', [BookmarkController::class, 'index']);
