@@ -2,6 +2,7 @@ import { AnimatePresence, motion } from 'framer-motion'
 import { useEffect, useState } from 'react'
 import { Link, useNavigate } from 'react-router-dom'
 import api from '../../api/api'
+import { formatScheduledTime } from '../../utils/scheduling'
 
 // ── Status badge ───────────────────────────────────────────────────────────
 function StatusBadge({ status }) {
@@ -17,6 +18,12 @@ function StatusBadge({ status }) {
       border: 'rgba(236,182,95,0.4)',
       dot: '#ECB65F',
       text: '#8a5e10',
+    },
+    scheduled: {
+      bg: 'rgba(99,102,241,0.12)',
+      border: 'rgba(99,102,241,0.35)',
+      dot: '#6366f1',
+      text: '#6366f1',
     },
   }
   const s = styles[status] ?? styles.draft
@@ -157,6 +164,9 @@ function BlogRow({ blog, index, onDelete }) {
       {/* Date */}
       <td className="py-4 px-4 whitespace-nowrap text-xs text-gray-400 dark:text-gray-500">
         <div>{formattedDate}</div>
+        {blog.status === 'scheduled' && blog.scheduled_at && (
+          <div className="mt-1 text-xs text-indigo-500">Scheduled {formatScheduledTime(blog.scheduled_at, blog.scheduled_timezone ?? undefined)}</div>
+        )}
         {publishedDate && (
           <div className="text-[10px] mt-0.5" style={{ color: '#A5CF83' }}>
             Published {publishedDate}
@@ -268,6 +278,7 @@ export default function MyBlogs() {
     { label: 'All',       value: 'all' },
     { label: 'Published', value: 'published' },
     { label: 'Draft',     value: 'draft' },
+    { label: 'Scheduled', value: 'scheduled' },
   ]
 
   return (
@@ -320,8 +331,8 @@ export default function MyBlogs() {
       >
         {[
           { label: 'Total',     value: meta?.total ?? '—',      color: '#E89951', bg: 'rgba(232,153,81,0.1)'  },
-          { label: 'Published', value: meta?.total ?? '—',      color: '#A5CF83', bg: 'rgba(165,207,131,0.1)' },
-          { label: 'Views',     value: blogs.reduce((a, b) => a + (b.view_count ?? 0), 0), color: '#ECB65F', bg: 'rgba(236,182,95,0.1)' },
+          { label: 'Published on this page', value: blogs.filter((blog) => blog.status === 'published').length, color: '#A5CF83', bg: 'rgba(165,207,131,0.1)' },
+          { label: 'Views on this page', value: blogs.reduce((a, b) => a + (b.view_count ?? 0), 0), color: '#ECB65F', bg: 'rgba(236,182,95,0.1)' },
         ].map((s) => (
           <div
             key={s.label}
@@ -344,7 +355,7 @@ export default function MyBlogs() {
         transition={{ duration: 0.4, delay: 0.12 }}
       >
         {/* Status tabs */}
-        <div className="flex items-center gap-1 p-1 rounded-xl bg-gray-100 dark:bg-gray-800">
+        <div className="flex flex-wrap items-center gap-1 p-1 rounded-xl bg-gray-100 dark:bg-gray-800">
           {tabs.map((t) => (
             <button
               key={t.value}

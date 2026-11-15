@@ -33,6 +33,7 @@ Route::middleware('auth:sanctum')->group(function () {
     Route::put('/blogs/{id}', [BlogController::class, 'update']);
     Route::delete('/blogs/{id}', [BlogController::class, 'destroy']);
     Route::put('/blogs/{id}/restore', [BlogController::class, 'restore']);
+    Route::delete('/blogs/{id}/schedule', [BlogController::class, 'cancelSchedule']);
     //blogs of logged in user
     Route::get('/my-blogs',      [BlogController::class, 'myBlogs']);
     Route::get('/my-blogs/trash', [BlogController::class, 'trash']);

@@ -4,9 +4,13 @@ namespace App\Http\Controllers;
 
 use App\Models\Blog;
 use App\Models\BlogView;
+use Illuminate\Support\Carbon;
 use Illuminate\Http\Request;
+use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Str;
 use Illuminate\Support\Facades\Storage;
+use Illuminate\Validation\Rule;
+use Illuminate\Validation\ValidationException;
 
 class BlogController extends Controller
 {
@@ -96,12 +100,18 @@ class BlogController extends Controller
     // create new blog
     public function store(Request $request)
     {
+        return DB::transaction(fn () => $this->storeOwnedBlog($request));
+    }
+
+    private function storeOwnedBlog(Request $request)
+    {
         $validated = $request->validate([
             'title' => ['required', 'string', 'max:255'],
             'excerpt' => ['nullable', 'string'],
             'content' => ['required', 'string'],
             'featured_image' => ['nullable', 'image', 'mimes:jpg,jpeg,png,webp', 'max:2048'],
-            'status' => ['required', 'in:draft,published'],
+            'status' => ['required', 'in:draft,published,scheduled'],
+            ...$this->scheduleRules($request),
             'meta_title' => ['nullable', 'string', 'max:255'],
             'meta_description' => ['nullable', 'string'],
             'is_featured' => ['boolean'],
@@ -113,14 +123,11 @@ class BlogController extends Controller
         ]);
 
         $validated['slug'] = $this->makeSlug($validated['title']);
+        $validated = $this->publicationAttributes($validated);
 
         // if a picture was uploaded, save it and keep its location
         if ($request->hasFile('featured_image')) {
             $validated['featured_image'] = $request->file('featured_image')->store('blogs', 'public');
-        }
-
-        if ($validated['status'] === 'published') {
-            $validated['published_at'] = now();
         }
 
         $blog = $request->user()->blogs()->create($validated);
@@ -140,13 +147,20 @@ class BlogController extends Controller
     //update the blog
     public function update(Request $request,$id)
     {
-        $blog = $request->user()->blogs()->findOrFail($id);
+        return DB::transaction(fn () => $this->updateOwnedBlog($request, $id));
+    }
+
+    private function updateOwnedBlog(Request $request, $id)
+    {
+        $blog = $request->user()->blogs()->lockForUpdate()->findOrFail($id);
         $validated = $request->validate([
             'title' => ['sometimes', 'required', 'string', 'max:255'],
             'excerpt' => ['nullable', 'string'],
             'content' => ['sometimes', 'required', 'string'],
             'featured_image' => ['nullable', 'image', 'mimes:jpg,jpeg,png,webp', 'max:2048'],
-            'status' => ['sometimes', 'required', 'in:draft,published'],
+            'remove_featured_image' => ['sometimes', 'boolean'],
+            'status' => ['sometimes', 'required', 'in:draft,published,scheduled'],
+            ...$this->scheduleRules($request, $blog),
             'meta_title' => ['nullable', 'string', 'max:255'],
             'meta_description' => ['nullable', 'string'],
             'is_featured' => ['boolean'],
@@ -157,17 +171,23 @@ class BlogController extends Controller
             'tag_ids.*' => ['integer', 'exists:tags,id'],
         ]);
 
+        $validated = $this->publicationAttributes($validated, $blog);
+
         // if a new picture was uploaded, remove the old one and save the new one
         if ($request->hasFile('featured_image')) {
             if ($blog->featured_image) {
                 Storage::disk('public')->delete($blog->featured_image);
             }
             $validated['featured_image'] = $request->file('featured_image')->store('blogs', 'public');
+        } elseif ($request->boolean('remove_featured_image')) {
+            if ($blog->featured_image) {
+                Storage::disk('public')->delete($blog->featured_image);
+            }
+            $validated['featured_image'] = null;
         }
 
-        if (($validated['status'] ?? null) === 'published' && ! $blog->published_at) {
-            $validated['published_at'] = now();
-        }
+        unset($validated['remove_featured_image']);
+
         $blog->update($validated);
 
         // Sync categories and tags
@@ -212,6 +232,9 @@ class BlogController extends Controller
     public function restore(Request $request, $id)
     {
         $blog = $request->user()->blogs()->onlyTrashed()->findOrFail($id);
+        if ($blog->status === 'scheduled' && (! $blog->scheduled_at || $blog->scheduled_at->lessThanOrEqualTo(now()))) {
+            $blog->fill(['status' => 'draft', 'scheduled_at' => null, 'scheduled_timezone' => null]);
+        }
         $blog->restore();
         $blog->load(['categories', 'tags']);
 
@@ -221,13 +244,24 @@ class BlogController extends Controller
         ]);
     }
 
-    // show all blogs of logged in user (all statuses: draft + published)
+    public function cancelSchedule(Request $request, $id)
+    {
+        return DB::transaction(function () use ($request, $id) {
+            $blog = $request->user()->blogs()->where('status', 'scheduled')->lockForUpdate()->findOrFail($id);
+            $blog->update(['status' => 'draft', 'scheduled_at' => null, 'scheduled_timezone' => null]);
+            $blog->load(['categories', 'tags']);
+
+            return response()->json(['message' => 'Schedule cancelled. Post returned to Draft.', 'blog' => $blog]);
+        });
+    }
+
+    // show all blogs of logged in user
     public function myBlogs(Request $request)
     {
         $query = $request->user()->blogs()->with(['categories', 'tags'])->latest();
 
-        // optional ?status=draft|published filter
-        if ($request->has('status') && in_array($request->status, ['draft', 'published'])) {
+        // optional ?status=draft|published|scheduled filter
+        if ($request->has('status') && in_array($request->status, ['draft', 'published', 'scheduled'])) {
             $query->where('status', $request->status);
         }
 
@@ -242,6 +276,46 @@ class BlogController extends Controller
         $blog = $request->user()->blogs()->with(['categories', 'tags'])->findOrFail($id);
 
         return response()->json($blog);
+    }
+
+    private function scheduleRules(Request $request, ?Blog $blog = null): array
+    {
+        $scheduled = $request->input('status', $blog?->status) === 'scheduled';
+
+        return [
+            'scheduled_at' => [
+                Rule::excludeIf(! $scheduled),
+                Rule::requiredIf($blog?->status !== 'scheduled' || ! $blog?->scheduled_at || $request->exists('scheduled_at')),
+                'date',
+                'regex:/^\d{4}-\d{2}-\d{2}T\d{2}:\d{2}(?::\d{2}(?:\.\d{1,6})?)?(?:Z|[+-]\d{2}:\d{2})$/i',
+                'after:'.now()->toIso8601String(),
+            ],
+            'scheduled_timezone' => [Rule::excludeIf(! $scheduled), 'sometimes', 'required', 'timezone', 'max:64'],
+        ];
+    }
+
+    private function publicationAttributes(array $validated, ?Blog $blog = null): array
+    {
+        $status = $validated['status'] ?? $blog?->status;
+
+        if ($status === 'scheduled') {
+            if ($blog?->status === 'published') {
+                throw ValidationException::withMessages(['status' => 'This post is already published. Refresh the editor before making further changes.']);
+            }
+            if (isset($validated['scheduled_at'])) {
+                $validated['scheduled_at'] = Carbon::parse($validated['scheduled_at'])->utc();
+            }
+            $validated['scheduled_timezone'] = $validated['scheduled_timezone'] ?? $blog?->scheduled_timezone ?? 'UTC';
+            $validated['published_at'] = null;
+        } else {
+            $validated['scheduled_at'] = null;
+            $validated['scheduled_timezone'] = null;
+            if ($status === 'published' && ! $blog?->published_at) {
+                $validated['published_at'] = now();
+            }
+        }
+
+        return $validated;
     }
 
     //helper functions

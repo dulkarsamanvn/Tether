@@ -28,6 +28,7 @@ export default function TrashBlogs() {
       <p className="mb-6 rounded-2xl border border-gray-200 bg-white p-5 text-sm text-gray-600 dark:border-gray-800 dark:bg-gray-900 dark:text-gray-300">
         Posts in Trash are hidden from readers. Restoring keeps their content, images, comments, likes, and bookmarks.
         Published posts become visible to readers again immediately; drafts remain private.
+        Future schedules resume on restore; schedules whose time has passed return as drafts.
       </p>
 
       {notice && (
@@ -42,7 +43,7 @@ export default function TrashBlogs() {
         onPageChange={setPage}
         onRefresh={refresh}
         onRestored={(blog) => {
-          setNotice(`“${blog.title}” restored as ${blog.status === 'published' ? 'published' : 'a draft'}.`)
+          setNotice(`“${blog.title}” restored as ${blog.status === 'published' ? 'published' : blog.status === 'scheduled' ? 'scheduled' : 'a draft'}.`)
           refresh()
         }}
       />
@@ -140,7 +141,7 @@ function TrashList({ page, onPageChange, onRefresh, onRestored }) {
                     <span className={`rounded-full px-3 py-1 text-xs font-semibold ${blog.status === 'published'
                       ? 'bg-green-50 text-green-700 dark:bg-green-900/30 dark:text-green-300'
                       : 'bg-amber-50 text-amber-700 dark:bg-amber-900/30 dark:text-amber-300'}`}>
-                      {blog.status === 'published' ? 'Published' : 'Draft'}
+                      {blog.status === 'published' ? 'Published' : blog.status === 'scheduled' && new Date(blog.scheduled_at).getTime() > Date.now() ? 'Scheduled' : 'Draft'}
                     </span>
                   </td>
                   <td className="whitespace-nowrap px-5 py-4 text-xs text-gray-500 dark:text-gray-400">

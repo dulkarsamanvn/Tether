@@ -14,6 +14,79 @@ A blog management system with a **Laravel** API backend and a **React** frontend
 - App-wide font picker with 10 fonts, Poppins by default, and a saved browser preference
 - "My Blogs" dashboard for each user
 - Private, paginated Trash with restoration of deleted blog posts
+- Browser autosave and draft recovery, including selected cover images
+- Scheduled publishing with timezone selection, rescheduling, and cancellation
+
+### Scheduled publishing
+
+Run the new migration from `Backend`:
+
+```bash
+php artisan migrate
+```
+
+In the editor, complete the post, choose a future **Publication date and time**
+and **Timezone**, then select **Schedule post**. The post stays private and
+appears in **My Blogs → Scheduled** until publication. Times are stored in UTC;
+the chosen timezone is retained for editing and display.
+
+Reopen the post to **Update schedule**, **Cancel schedule** (returning it to
+Draft), or **Publish now**. Autosave and **Save Draft** keep unfinished edits
+separate; select **Update schedule** to apply those edits to the version that
+will publish. Already published posts keep their existing private-draft workflow.
+
+In a separate terminal, run the scheduler from `Backend` during development:
+
+```bash
+php artisan schedule:work
+```
+
+Keep that terminal running. `php artisan serve` and the queue worker do not
+start the scheduler. The `blogs:publish-scheduled` command runs every minute
+without overlapping. It publishes due posts in one conditional database update,
+skips posts in Trash, and can safely run again after downtime. Publication occurs
+on the next scheduler check, usually within a minute of the selected time.
+
+On a Linux production server, install this cron entry with the real backend path:
+
+```cron
+* * * * * cd /path/to/Backend && php artisan schedule:run >> /dev/null 2>&1
+```
+
+For a one-off run or to inspect the registered task, use:
+
+```bash
+php artisan blogs:publish-scheduled
+php artisan schedule:list
+```
+
+The existing blog create/update endpoints accept `status: scheduled`, a future
+`scheduled_at` timestamp with a timezone offset, and an optional IANA
+`scheduled_timezone` (default UTC). The author-only
+`DELETE /api/blogs/{id}/schedule` cancels a schedule without changing its content.
+Cancellation cannot unpublish a post that has already gone live.
+
+### Autosave and draft recovery
+
+The editor saves unfinished writing in this browser after one second without
+changes, with a checkpoint every ten seconds during continuous typing. It keeps
+the title, rich text, cover image, excerpt, categories, tags,
+and settings, even before a title or complete article has been entered. The
+editor shows saving progress and the last saved time. Return to **Write** or
+reopen the same post to recover or discard a saved copy. Accounts and editor
+sessions have separate recovery copies.
+
+Autosave and **Save Draft** on an already published post keep the edits private;
+the published version changes only when **Publish changes** is selected.
+**Save Draft** on a new or unpublished post still saves it to **My Blogs**.
+Successful server saves clear that editor session's recovery copy. Failed saves
+keep it for retrying. The browser warns before closing or refreshing while
+changes are still waiting to be saved. Dashboard navigation first finishes a
+pending save; if storage fails, the editor offers retry, stay, or leave options.
+
+Recovery copies are stored on this device, without a fixed expiry; they do not
+sync between browsers. Clearing browser site data removes them. Keep this
+browser profile private on shared devices. No database migration is required.
 
 ### Trash and restore
 
@@ -24,7 +97,9 @@ until restored; there is no automatic expiry.
 
 Restoration preserves the original content, featured image, categories, tags,
 comments, likes, bookmarks, view count, and publication date. Published posts
-become public again immediately; drafts remain private.
+become public again immediately; drafts remain private. Restoring a scheduled
+post resumes a future schedule. If its scheduled time has already passed, it
+returns as a draft so the author can review and reschedule it.
 
 The authenticated API provides `GET /api/my-blogs/trash` (paginated) and
 `PUT /api/blogs/{id}/restore`. The existing `DELETE /api/blogs/{id}` moves a post

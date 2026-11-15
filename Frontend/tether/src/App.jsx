@@ -1,4 +1,4 @@
-import { BrowserRouter, Navigate, Route, Routes } from 'react-router-dom'
+import { createBrowserRouter, Navigate, RouterProvider } from 'react-router-dom'
 import { AuthProvider } from './context/AuthContext'
 import { ThemeProvider } from './context/ThemeContext'
 import DashboardLayout from './layouts/DashboardLayout'
@@ -11,31 +11,31 @@ import MyBlogs from './pages/dashboard/MyBlogs'
 import SavedBlogs from './pages/dashboard/SavedBlogs'
 import TrashBlogs from './pages/dashboard/TrashBlogs'
 
+// A data router lets the editor finish a pending autosave before dashboard navigation.
+const router = createBrowserRouter([
+  { path: '/login', element: <Login /> },
+  { path: '/signup', element: <Signup /> },
+  {
+    path: '/dashboard',
+    element: <DashboardLayout />,
+    children: [
+      { index: true, element: <Home /> },
+      { path: 'blogs', element: <MyBlogs /> },
+      { path: 'saved', element: <SavedBlogs /> },
+      { path: 'trash', element: <TrashBlogs /> },
+      { path: 'blogs/:id/view', element: <BlogView /> },
+      { path: 'write', element: <BlogEditor /> },
+      { path: 'blogs/:id/edit', element: <BlogEditor /> },
+    ],
+  },
+  { path: '/', element: <Navigate to="/login" replace /> },
+])
+
 function App() {
   return (
     <ThemeProvider>
       <AuthProvider>
-        <BrowserRouter>
-          <Routes>
-            {/* Auth */}
-            <Route path="/login"  element={<Login />} />
-            <Route path="/signup" element={<Signup />} />
-
-            {/* Dashboard */}
-            <Route path="/dashboard" element={<DashboardLayout />}>
-              <Route index element={<Home />} />
-              <Route path="blogs"               element={<MyBlogs />} />
-              <Route path="saved"               element={<SavedBlogs />} />
-              <Route path="trash"               element={<TrashBlogs />} />
-              <Route path="blogs/:id/view"       element={<BlogView />} />
-              <Route path="write"               element={<BlogEditor />} />
-              <Route path="blogs/:id/edit"      element={<BlogEditor />} />
-            </Route>
-
-            {/* Fallback */}
-            <Route path="/" element={<Navigate to="/login" replace />} />
-          </Routes>
-        </BrowserRouter>
+        <RouterProvider router={router} />
       </AuthProvider>
     </ThemeProvider>
   )

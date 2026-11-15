@@ -24,6 +24,8 @@ class Blog extends Model
         'featured_image',
         'status',
         'published_at',
+        'scheduled_at',
+        'scheduled_timezone',
         'meta_title',
         'meta_description',
         'is_featured',
@@ -36,6 +38,7 @@ class Blog extends Model
     {
         return [
             'published_at' => 'datetime',
+            'scheduled_at' => 'datetime',
             'is_featured' => 'boolean',
             'allow_comments' => 'boolean',
             'view_count' => 'integer',
