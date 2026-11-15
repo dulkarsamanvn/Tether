@@ -438,7 +438,9 @@ function BlogEditorSession({ id, userId }) {
   )
 
   return (
-    <div className="max-w-6xl mx-auto">
+    <div className="max-w-6xl mx-auto lg:flex lg:h-full lg:min-h-0 lg:flex-col">
+
+      <div className="lg:max-h-[45%] lg:shrink-0 lg:overflow-y-auto lg:overscroll-contain">
 
       {autosave.navigation.state === 'blocked' && (
         <section role="alert" className="mb-5 rounded-2xl border border-amber-200 bg-amber-50 p-5 text-sm text-gray-700 dark:border-amber-900 dark:bg-amber-950/20 dark:text-gray-200">
@@ -594,12 +596,17 @@ function BlogEditorSession({ id, userId }) {
         </motion.div>
       )}
 
+      </div>
+
       {/* ── Main two-column layout ── */}
-      <fieldset disabled={saving || recovering || recoveryChoices.length > 0 || autosave.navigation.state === 'blocked'} className="flex min-w-0 flex-col gap-5 items-start lg:flex-row">
+      <fieldset disabled={saving || recovering || recoveryChoices.length > 0 || autosave.navigation.state === 'blocked'} className="flex min-w-0 flex-col gap-5 items-start lg:min-h-0 lg:flex-1 lg:flex-row lg:items-stretch lg:overflow-hidden">
 
         {/* ── LEFT — Editor ── */}
         <motion.div
-          className="w-full flex-1 min-w-0"
+          role="region"
+          aria-label="Post content"
+          tabIndex={0}
+          className="w-full flex-1 min-w-0 focus-visible:outline-bordo lg:h-full lg:overflow-y-auto lg:overscroll-contain lg:pr-2 lg:[scrollbar-gutter:stable]"
           initial={{ opacity: 0, y: 16 }}
           animate={{ opacity: 1, y: 0 }}
           transition={{ duration: 0.4, delay: 0.05 }}
@@ -640,7 +647,10 @@ function BlogEditorSession({ id, userId }) {
 
         {/* ── RIGHT — Settings sidebar ── */}
         <motion.div
-          className="w-full lg:w-72 shrink-0 space-y-4"
+          role="region"
+          aria-label="Post settings"
+          tabIndex={0}
+          className="w-full lg:w-72 shrink-0 space-y-4 focus-visible:outline-bordo lg:h-full lg:overflow-y-auto lg:overscroll-contain lg:pr-2 lg:[scrollbar-gutter:stable]"
           initial={{ opacity: 0, x: 20 }}
           animate={{ opacity: 1, x: 0 }}
           transition={{ duration: 0.4, delay: 0.1 }}
