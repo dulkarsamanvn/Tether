@@ -104,4 +104,4 @@ The app runs at `http://localhost:5173`.
 
 ## Author
 
-Dulkar Saman V N
+Dulkar Saman VN
