@@ -1,10 +1,11 @@
 import { AnimatePresence, motion } from 'framer-motion'
 import { useEffect, useState } from 'react'
-import { useNavigate, useParams } from 'react-router-dom'
+import { Link, useNavigate, useParams } from 'react-router-dom'
 import api from '../../api/api'
 import BlogShare from '../../components/ui/BlogShare'
 import BookmarkButton from '../../components/ui/BookmarkButton'
 import LikeButton from '../../components/ui/LikeButton'
+import Avatar from '../../components/ui/Avatar'
 import { useAuth } from '../../hooks/useAuth'
 import '../../styles/editor.css'
 
@@ -230,15 +231,9 @@ export default function BlogView() {
         <div className="flex flex-wrap items-center gap-x-5 gap-y-2 pb-6
           border-b border-gray-100 dark:border-gray-800">
 
-          <div className="flex items-center gap-2">
-            <div className="w-8 h-8 rounded-full flex items-center justify-center text-sm font-bold"
-              style={{ background: '#A5CF83', color: '#18190F' }}>
-              {blog.user?.name?.[0]?.toUpperCase() ?? 'A'}
-            </div>
-            <span className="text-sm font-semibold text-gray-700 dark:text-gray-300">
-              {blog.user?.name ?? 'Author'}
-            </span>
-          </div>
+          {blog.user?.id ? <Link to={`/dashboard/authors/${blog.user.id}`} className="flex items-center gap-2 rounded-lg text-sm font-semibold text-gray-700 hover:text-bordo focus-visible:outline-bordo dark:text-gray-300">
+            <Avatar user={blog.user} className="h-8 w-8 text-sm" /><span>{blog.user.name}</span>
+          </Link> : <span className="text-sm text-gray-500">Author</span>}
 
           <span className="flex items-center gap-1.5 text-sm text-gray-400 dark:text-gray-500">
             <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -300,7 +295,7 @@ export default function BlogView() {
               <li key={c.id} className="bg-gray-50 dark:bg-gray-800 p-4 rounded-lg">
                 <div className="flex items-center justify-between mb-2">
                   <div className="flex items-center gap-2">
-                    <span className="font-medium text-gray-800 dark:text-gray-200">{c.user?.name ?? 'Guest'}</span>
+                    {c.user?.id ? <Link to={`/dashboard/authors/${c.user.id}`} className="font-medium text-gray-800 hover:text-bordo dark:text-gray-200">{c.user.name}</Link> : <span className="font-medium text-gray-800 dark:text-gray-200">Guest</span>}
                     <span className="text-xs text-gray-500 dark:text-gray-400">{new Date(c.created_at).toLocaleDateString()}</span>
                   </div>
                   {(user?.id === c.user_id || user?.id === blog?.user_id) && (

@@ -48,7 +48,7 @@ class Blog extends Model
 
     public function user(): BelongsTo
     {
-        return $this->belongsTo(User::class);
+        return $this->belongsTo(User::class)->select(User::PROFILE_FIELDS);
     }
 
     protected function featuredImageUrl(): Attribute

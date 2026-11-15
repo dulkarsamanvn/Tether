@@ -3,6 +3,7 @@ import { useRef, useState } from 'react'
 import { NavLink, Outlet, useNavigate } from 'react-router-dom'
 import api from '../api/api'
 import FontPicker from '../components/ui/FontPicker'
+import Avatar from '../components/ui/Avatar'
 import { useAuth } from '../hooks/useAuth'
 import { useTheme } from '../hooks/useTheme'
 
@@ -44,6 +45,15 @@ const navItems = [
       <svg className="w-5 h-5 shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
         <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.8}
           d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16" />
+      </svg>
+    ),
+  },
+  {
+    label: 'My Profile',
+    to: '/dashboard/profile',
+    icon: (
+      <svg aria-hidden="true" className="w-5 h-5 shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+        <circle cx="12" cy="8" r="4" strokeWidth={1.8} /><path d="M4 21v-2a8 8 0 0116 0v2" strokeWidth={1.8} strokeLinecap="round" />
       </svg>
     ),
   },
@@ -222,14 +232,7 @@ export default function DashboardLayout() {
         {/* ── User info ── */}
         <div className="p-3 border-t border-gray-200 dark:border-green-dark/60 shrink-0">
           <div className="flex items-center gap-3 px-1.5 min-w-0">
-            <div
-              className="w-8 h-8 rounded-full flex items-center justify-center shrink-0 shadow-md"
-              style={{ background: '#E89951' }}
-            >
-              <span className="text-xs font-bold" style={{ color: '#18190F' }}>
-                {user && user.name ? user.name[0].toUpperCase() : 'U'}
-              </span>
-            </div>
+            <Avatar user={user} className="h-8 w-8 text-xs" />
 
             <AnimatePresence initial={false}>
               {!collapsed && (

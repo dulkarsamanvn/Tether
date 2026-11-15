@@ -1,6 +1,7 @@
 import { motion } from 'framer-motion'
-import { useNavigate } from 'react-router-dom'
+import { Link, useNavigate } from 'react-router-dom'
 import { formatDate, truncate } from '../../utils/helpers'
+import Avatar from './Avatar'
 
 const gradients = [
   'from-[#E89951]/80 to-[#18190F]/80',
@@ -62,7 +63,7 @@ export default function BlogCard({ blog, index = 0 }) {
 
         {/* Title */}
         <h3 className="font-bold text-gray-900 dark:text-white text-base leading-snug mb-2 group-hover:text-bordo dark:group-hover:text-bordo-light transition-colors duration-200">
-          {blog.title}
+          <Link to={`/dashboard/blogs/${blog.id}/view`} onClick={(event) => event.stopPropagation()} className="focus-visible:outline-bordo">{blog.title}</Link>
         </h3>
 
         {/* Categories & Tags */}
@@ -92,16 +93,9 @@ export default function BlogCard({ blog, index = 0 }) {
 
         {/* Footer */}
         <div className="flex flex-wrap items-center justify-between gap-3 pt-4 border-t border-gray-100 dark:border-gray-800">
-          <div className="flex items-center gap-2">
-            <div className="w-7 h-7 rounded-full flex items-center justify-center shrink-0" style={{ background: '#A5CF83' }}>
-              <span className="text-xs font-bold" style={{ color: '#18190F' }}>
-                {blog.user && blog.user.name ? blog.user.name[0].toUpperCase() : 'A'}
-              </span>
-            </div>
-            <span className="text-gray-500 dark:text-gray-400 text-xs font-medium">
-              {blog.user && blog.user.name ? blog.user.name : 'Author'}
-            </span>
-          </div>
+          {blog.user?.id ? <Link to={`/dashboard/authors/${blog.user.id}`} onClick={(event) => event.stopPropagation()} className="flex min-w-0 items-center gap-2 rounded-lg text-xs font-medium text-gray-500 hover:text-bordo focus-visible:outline-bordo dark:text-gray-400">
+            <Avatar user={blog.user} className="h-7 w-7 text-xs" /><span className="truncate">{blog.user.name}</span>
+          </Link> : <span className="text-xs text-gray-500">Author</span>}
 
           <div className="flex items-center gap-3 text-gray-400 dark:text-gray-600 text-xs">
             <span className="flex items-center gap-1" aria-label={`${blog.likes_count ?? 0} likes`}>

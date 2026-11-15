@@ -1,6 +1,8 @@
 <?php
 
 use App\Http\Controllers\AuthController;
+use App\Http\Controllers\AuthorController;
+use App\Http\Controllers\ProfileController;
 use App\Http\Controllers\BlogController;
 use App\Http\Controllers\BookmarkController;
 use App\Http\Controllers\CategoryController;
@@ -14,6 +16,8 @@ use Illuminate\Support\Facades\Route;
 // Public routes: no login required
 Route::post('/register', [AuthController::class, 'register']);
 Route::post('/login', [AuthController::class, 'login']);
+Route::get('/authors/{id}', [AuthorController::class, 'show'])->whereNumber('id');
+Route::get('/authors/{id}/blogs', [AuthorController::class, 'blogs'])->whereNumber('id');
 
 //blog routes
 Route::get('/blogs', [BlogController::class, 'index']);
@@ -27,6 +31,8 @@ Route::get('/tags', [TagController::class, 'index']);
 // Protected routes: login required
 Route::middleware('auth:sanctum')->group(function () {
     Route::post('/logout', [AuthController::class, 'logout']);
+    Route::get('/profile', [ProfileController::class, 'show']);
+    Route::put('/profile', [ProfileController::class, 'update']);
 
     //blog routes
     Route::post('/blogs', [BlogController::class, 'store']);

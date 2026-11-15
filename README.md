@@ -16,6 +16,23 @@ A blog management system with a **Laravel** API backend and a **React** frontend
 - Private, paginated Trash with restoration of deleted blog posts
 - Browser autosave and draft recovery, including selected cover images
 - Scheduled publishing with timezone selection, rescheduling, and cancellation
+- Author profiles with editable names, bios, profile photos, and public article lists
+
+### Author profiles
+
+Open **My Profile** to update your display name, bio, and profile photo. Photos
+accept JPG, PNG, or WebP files up to 2 MB and can be replaced or removed. Profile
+changes update the sidebar immediately. Run `php artisan migrate` from `Backend`
+for the profile fields, and ensure `php artisan storage:link` has been run for photos.
+
+Click an author's name on a post or article card to open their public profile.
+Public profiles show only published, non-deleted posts; drafts and scheduled
+posts stay private. Email addresses and account settings are excluded from
+public profile and article-author responses.
+
+Public APIs: `GET /api/authors/{id}` and `GET /api/authors/{id}/blogs` (paginated).
+Authenticated APIs: `GET /api/profile` and `PUT /api/profile`; updates always apply
+to the authenticated account. Photo uploads use multipart POST with `_method=PUT`.
 
 ### Scheduled publishing
 
