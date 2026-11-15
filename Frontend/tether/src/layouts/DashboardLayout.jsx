@@ -229,7 +229,7 @@ export default function DashboardLayout() {
           ))}
         </nav>
 
-        {/* ── User info ── */}
+        {/* ── Account and logout ── */}
         <div className="p-3 border-t border-gray-200 dark:border-green-dark/60 shrink-0">
           <div className="flex items-center gap-3 px-1.5 min-w-0">
             <Avatar user={user} className="h-8 w-8 text-xs" />
@@ -253,6 +253,30 @@ export default function DashboardLayout() {
               )}
             </AnimatePresence>
           </div>
+          {user && (
+            <motion.button
+              id="logout-btn"
+              type="button"
+              onClick={handleLogout}
+              disabled={loggingOut}
+              aria-label={loggingOut ? 'Signing out…' : 'Logout'}
+              title={loggingOut ? 'Signing out…' : 'Logout'}
+              whileTap={{ scale: 0.95 }}
+              className={`mt-3 flex w-full items-center rounded-xl px-2.5 py-2.5 text-sm font-semibold text-gray-500 transition-colors hover:bg-red-50 hover:text-red-500 focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-bordo disabled:cursor-wait disabled:opacity-60 dark:text-cream/60 dark:hover:bg-red-900/20 dark:hover:text-red-400 ${collapsed ? 'justify-center' : 'gap-3'}`}
+            >
+              {loggingOut ? (
+                <svg aria-hidden="true" className="h-5 w-5 shrink-0 animate-spin" fill="none" viewBox="0 0 24 24">
+                  <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4" />
+                  <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4z" />
+                </svg>
+              ) : (
+                <svg aria-hidden="true" className="h-5 w-5 shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.8} d="M17 16l4-4m0 0l-4-4m4 4H7m6 4v1a3 3 0 01-3 3H6a3 3 0 01-3-3V7a3 3 0 013-3h4a3 3 0 013 3v1" />
+                </svg>
+              )}
+              {!collapsed && <span className="whitespace-nowrap">{loggingOut ? 'Signing out…' : 'Logout'}</span>}
+            </motion.button>
+          )}
         </div>
       </motion.aside>
 
@@ -329,7 +353,7 @@ export default function DashboardLayout() {
             </AnimatePresence>
           </div>
 
-          {/* RIGHT: search + theme + font + profile + logout */}
+          {/* RIGHT: search + theme + font + profile */}
           <div className="flex items-center gap-2">
 
             {/* ── Search bar ── */}
@@ -453,31 +477,6 @@ export default function DashboardLayout() {
               </NavLink>
             )}
 
-            {/* Logout */}
-            <motion.button
-              id="logout-btn"
-              onClick={handleLogout}
-              disabled={loggingOut}
-              whileTap={{ scale: 0.95 }}
-              className="flex items-center gap-2 px-3.5 py-2 rounded-xl text-sm font-semibold
-                text-gray-400 dark:text-gray-400
-                hover:bg-red-50 hover:text-red-500
-                dark:hover:bg-red-900/20 dark:hover:text-red-400
-                transition-colors duration-200 disabled:opacity-60"
-            >
-              {loggingOut ? (
-                <svg className="animate-spin w-4 h-4" fill="none" viewBox="0 0 24 24">
-                  <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4"/>
-                  <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4z"/>
-                </svg>
-              ) : (
-                <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2}
-                    d="M17 16l4-4m0 0l-4-4m4 4H7m6 4v1a3 3 0 01-3 3H6a3 3 0 01-3-3V7a3 3 0 013-3h4a3 3 0 013 3v1"/>
-                </svg>
-              )}
-              <span className="hidden sm:inline">{loggingOut ? 'Signing out…' : 'Logout'}</span>
-            </motion.button>
           </div>
         </header>
 
