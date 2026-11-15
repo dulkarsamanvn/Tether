@@ -72,7 +72,7 @@ function ProfileForm() {
   return (
     <div className="mx-auto w-full max-w-6xl">
       <div className="mb-6 flex flex-wrap items-center justify-between gap-4">
-        <div><h1 className="text-2xl font-extrabold text-gray-900 dark:text-white">My Profile</h1><p className="mt-1 text-sm text-gray-500 dark:text-gray-400">Introduce yourself to your readers.</p></div>
+        <div><h1 className="text-2xl font-extrabold text-gray-900 dark:text-white">Edit profile</h1><p className="mt-1 text-sm text-gray-500 dark:text-gray-400">Introduce yourself to your readers.</p></div>
         <Link to={`/dashboard/authors/${user.id}`} className="rounded-xl border border-gray-200 bg-white px-4 py-2 text-sm font-semibold text-gray-600 hover:border-bordo focus-visible:outline-bordo dark:border-gray-700 dark:bg-gray-900 dark:text-gray-300">View public profile</Link>
       </div>
       <form onSubmit={save} className="rounded-2xl border border-gray-100 bg-white p-6 sm:p-8 dark:border-gray-800 dark:bg-gray-900">

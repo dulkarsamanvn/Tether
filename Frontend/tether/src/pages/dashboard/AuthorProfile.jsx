@@ -1,5 +1,5 @@
 import { useEffect, useState } from 'react'
-import { Link, useParams } from 'react-router-dom'
+import { Link, Navigate, useParams } from 'react-router-dom'
 import api from '../../api/api'
 import Avatar from '../../components/ui/Avatar'
 import BlogCard from '../../components/ui/BlogCard'
@@ -8,8 +8,11 @@ import { useAuth } from '../../hooks/useAuth'
 
 const buttonClass = 'rounded-xl border border-gray-200 px-4 py-2 text-sm font-semibold text-gray-600 hover:border-bordo focus-visible:outline-bordo disabled:cursor-not-allowed disabled:opacity-40 dark:border-gray-700 dark:text-gray-300'
 
-export default function AuthorProfile() {
-  const { authorId } = useParams()
+export default function AuthorProfile({ ownProfile = false }) {
+  const params = useParams()
+  const { user, isAuthenticated } = useAuth()
+  if (ownProfile && (!isAuthenticated || !user?.id)) return <Navigate to="/login" replace />
+  const authorId = ownProfile ? user.id : params.authorId
   return <AuthorProfileSession key={authorId} authorId={authorId} />
 }
 
@@ -47,11 +50,11 @@ function AuthorProfilePage({ authorId, page, onPageChange, onRefresh }) {
         <div className="flex flex-wrap items-center gap-5">
           <Avatar user={author} className="h-20 w-20 text-3xl" />
           <div className="min-w-0 flex-1">
-            <p className="mb-1 text-xs font-bold uppercase tracking-widest text-bordo">Author</p>
+            <p className="mb-1 text-xs font-bold uppercase tracking-widest text-bordo">Public profile</p>
             <h1 className="break-words text-2xl font-extrabold text-gray-900 dark:text-white">{author.name}</h1>
             <p className="mt-1 text-sm text-gray-500 dark:text-gray-400">Joined {new Date(author.created_at).toLocaleDateString(undefined, { month: 'long', year: 'numeric' })}</p>
           </div>
-          {user?.id === author.id && <Link to="/dashboard/profile" className={buttonClass}>Edit profile</Link>}
+          {user?.id === author.id && <Link to="/dashboard/profile/edit" className={buttonClass}>Edit profile</Link>}
           <FollowButton key={`${author.id}:${user?.id ?? 'guest'}`} authorId={author.id} initialFollowing={author.is_following} onChange={(follow) => setResult((previous) => ({ ...previous, author: { ...previous.author, ...follow } }))} />
         </div>
         {author.bio && <p className="mt-6 max-w-3xl whitespace-pre-wrap break-words text-sm leading-relaxed text-gray-600 dark:text-gray-300">{author.bio}</p>}

@@ -39,7 +39,11 @@ paginated. Public profiles include counts and the current viewer's follow state.
 
 ### Author profiles
 
-Open **My Profile** to update your display name, bio, and profile photo. Photos
+Open **My Profile** in the header to see your public profile, including your
+published posts and follower counts. Choose **Edit profile** to update your
+display name, bio, and profile photo. **View public profile** returns to the
+read-only author page. Profile editing has its own `/dashboard/profile/edit`
+route; `/dashboard/profile` shows your public profile. Photos
 accept JPG, PNG, or WebP files up to 2 MB and can be replaced or removed. Profile
 changes update the sidebar immediately. Run `php artisan migrate` from `Backend`
 for the profile fields, and ensure `php artisan storage:link` has been run for photos.
