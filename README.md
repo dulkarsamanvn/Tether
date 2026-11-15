@@ -37,6 +37,14 @@ Authenticated APIs: `PUT /api/authors/{id}/follow`,
 `GET /api/following/feed`. Follow/unfollow are idempotent; list endpoints are
 paginated. Public profiles include counts and the current viewer's follow state.
 
+Click **followers** or **following** on any public profile to open its paginated
+list. Lists include active accounts and public profile details only; email,
+account settings, and relationship metadata are excluded. Follow controls reflect
+the signed-in viewer's own relationships, and unfollowing asks for confirmation.
+Your own lists also provide **View following feed** for reading followed authors'
+posts. Public list APIs: `GET /api/authors/{id}/followers` and
+`GET /api/authors/{id}/following`.
+
 ### Author profiles
 
 Open **My Profile** in the header to see your public profile, including your

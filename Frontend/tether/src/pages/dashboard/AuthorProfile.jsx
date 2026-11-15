@@ -60,8 +60,8 @@ function AuthorProfilePage({ authorId, page, onPageChange, onRefresh }) {
         {author.bio && <p className="mt-6 max-w-3xl whitespace-pre-wrap break-words text-sm leading-relaxed text-gray-600 dark:text-gray-300">{author.bio}</p>}
         <div className="mt-5 flex flex-wrap gap-x-6 gap-y-2 text-sm text-gray-600 dark:text-gray-300">
           <p><span className="font-bold text-gray-900 dark:text-white">{author.published_blogs_count}</span> published {author.published_blogs_count === 1 ? 'post' : 'posts'}</p>
-          <p><span className="font-bold text-gray-900 dark:text-white">{author.followers_count}</span> {author.followers_count === 1 ? 'follower' : 'followers'}</p>
-          <p><span className="font-bold text-gray-900 dark:text-white">{author.following_count}</span> following</p>
+          <Link to={`/dashboard/authors/${author.id}/followers`} className="group rounded-md hover:text-bordo focus-visible:outline-2 focus-visible:outline-offset-4 focus-visible:outline-bordo" title="View followers"><span className="font-bold text-gray-900 group-hover:text-bordo dark:text-white">{author.followers_count}</span> {author.followers_count === 1 ? 'follower' : 'followers'}</Link>
+          <Link to={`/dashboard/authors/${author.id}/following`} className="group rounded-md hover:text-bordo focus-visible:outline-2 focus-visible:outline-offset-4 focus-visible:outline-bordo" title="View following"><span className="font-bold text-gray-900 group-hover:text-bordo dark:text-white">{author.following_count}</span> following</Link>
         </div>
       </section>
       <h2 className="mb-5 text-lg font-bold text-gray-900 dark:text-white">Published posts</h2>

@@ -19,6 +19,8 @@ Route::post('/register', [AuthController::class, 'register']);
 Route::post('/login', [AuthController::class, 'login']);
 Route::get('/authors/{id}', [AuthorController::class, 'show'])->whereNumber('id');
 Route::get('/authors/{id}/blogs', [AuthorController::class, 'blogs'])->whereNumber('id');
+Route::get('/authors/{id}/followers', [AuthorController::class, 'followers'])->whereNumber('id');
+Route::get('/authors/{id}/following', [AuthorController::class, 'following'])->whereNumber('id');
 
 //blog routes
 Route::get('/blogs', [BlogController::class, 'index']);
