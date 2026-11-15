@@ -1,6 +1,6 @@
 import { motion } from 'framer-motion'
 import { useEffect, useState } from 'react'
-import { useSearchParams } from 'react-router-dom'
+import { Link, useSearchParams } from 'react-router-dom'
 import api from '../../api/api'
 import BlogCard from '../../components/ui/BlogCard'
 
@@ -64,17 +64,18 @@ export default function Home() {
 
       {/* ── Header ── */}
       <motion.div
-        className="mb-8"
+        className="mb-8 flex flex-wrap items-center justify-between gap-4"
         initial={{ opacity: 0, y: -12 }}
         animate={{ opacity: 1, y: 0 }}
         transition={{ duration: 0.4 }}
       >
-        <h1 className="text-2xl font-extrabold text-gray-900 dark:text-white mb-1">
+        <div><h1 className="text-2xl font-extrabold text-gray-900 dark:text-white mb-1">
           Published Blogs
         </h1>
         <p className="text-gray-400 dark:text-gray-500 text-sm">
           {meta ? `${meta.total} article${meta.total !== 1 ? 's' : ''} published` : 'Loading…'}
-        </p>
+        </p></div>
+        <Link to="/dashboard/authors" className="rounded-xl border border-gray-200 px-4 py-2 text-sm font-semibold text-gray-600 hover:border-bordo focus-visible:outline-bordo dark:border-gray-700 dark:text-gray-300">Discover authors</Link>
       </motion.div>
 
       {/* ── Search + controls ── */}

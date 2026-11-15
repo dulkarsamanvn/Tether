@@ -18,7 +18,7 @@ export default function Following() {
   return <div className="mx-auto max-w-6xl">
     <div className="mb-6 flex flex-wrap items-center justify-between gap-4">
       <div><h1 className="text-2xl font-extrabold text-gray-900 dark:text-white">Following</h1><p className="mt-1 text-sm text-gray-500 dark:text-gray-400">Keep up with the authors you enjoy reading.</p></div>
-      <Link to="/dashboard" className={buttonClass}>Discover posts</Link>
+      <Link to="/dashboard/authors" className={buttonClass}>Discover authors</Link>
     </div>
     <div className="mb-7 flex flex-wrap gap-2" role="group" aria-label="Following view">
       {[['posts', 'Latest posts'], ['authors', 'Authors you follow']].map(([value, label]) => <button key={value} type="button" aria-pressed={tab === value} onClick={() => { setTab(value); setPage(1) }} className={`rounded-xl px-4 py-2 text-sm font-semibold focus-visible:outline-bordo ${tab === value ? 'bg-bordo text-green' : 'bg-gray-100 text-gray-500 hover:text-gray-800 dark:bg-gray-800 dark:text-gray-400'}`}>{label}</button>)}
@@ -52,7 +52,7 @@ function FollowingPage({ tab, page, onPageChange, onRefresh }) {
     {data.data.length === 0 && <div className="rounded-2xl border border-gray-100 bg-white px-6 py-16 text-center dark:border-gray-800 dark:bg-gray-900">
       <h2 className="font-bold text-gray-800 dark:text-gray-200">{tab === 'posts' ? 'No posts from followed authors yet' : 'Find your next favorite author'}</h2>
       <p className="mt-2 mb-5 text-sm text-gray-500 dark:text-gray-400">Open an author's profile from any post and select Follow. Their published posts will appear here.</p>
-      <Link to="/dashboard" className="rounded-xl bg-bordo px-4 py-2 text-sm font-bold text-green">Explore published posts</Link>
+      <Link to="/dashboard/authors" className="rounded-xl bg-bordo px-4 py-2 text-sm font-bold text-green">Discover authors</Link>
     </div>}
     <div className="grid grid-cols-1 gap-6 sm:grid-cols-2 xl:grid-cols-3">
       {data.data.map((item, index) => tab === 'posts' ? <BlogCard key={item.id} blog={item} index={index} /> : <article key={item.id} className="flex flex-col rounded-2xl border border-gray-100 bg-white p-5 dark:border-gray-800 dark:bg-gray-900">

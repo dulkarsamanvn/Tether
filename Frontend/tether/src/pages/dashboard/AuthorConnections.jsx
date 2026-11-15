@@ -50,7 +50,10 @@ function ConnectionsPage({ authorId, kind, page, onPageChange, onRefresh }) {
           <Avatar user={author} className="h-14 w-14 text-xl" />
           <div className="min-w-0"><h1 className="text-2xl font-extrabold text-gray-900 dark:text-white">{kind === 'followers' ? 'Followers' : 'Following'}</h1><Link to={profileUrl} className="mt-1 block break-words text-sm text-gray-500 hover:text-bordo dark:text-gray-400">{author.name}</Link></div>
         </div>
-        {isOwnProfile && <Link to="/dashboard/following" className={buttonClass}>View following feed</Link>}
+        <div className="flex flex-wrap gap-3">
+          <Link to="/dashboard/authors" className={buttonClass}>Discover authors</Link>
+          {isOwnProfile && <Link to="/dashboard/following" className={buttonClass}>View following feed</Link>}
+        </div>
       </div>
       <nav aria-label="Profile connections" className="mb-7 flex flex-wrap gap-2">
         {[['followers', 'Followers', author.followers_count], ['following', 'Following', author.following_count]].map(([value, label, count]) => (
@@ -68,7 +71,7 @@ function ConnectionsPage({ authorId, kind, page, onPageChange, onRefresh }) {
           <div className="rounded-2xl border border-gray-100 bg-white px-6 py-16 text-center dark:border-gray-800 dark:bg-gray-900">
             <h2 className="font-bold text-gray-800 dark:text-gray-200">{kind === 'followers' ? 'No followers yet' : 'Not following anyone yet'}</h2>
             <p className="mt-2 text-sm text-gray-500 dark:text-gray-400">{kind === 'followers' ? 'People who follow this profile will appear here.' : 'People followed by this profile will appear here.'}</p>
-            {isOwnProfile && kind === 'following' && <Link to="/dashboard" className="mt-5 inline-block rounded-xl bg-bordo px-4 py-2 text-sm font-bold text-green">Discover authors through their posts</Link>}
+            {isOwnProfile && kind === 'following' && <Link to="/dashboard/authors" className="mt-5 inline-block rounded-xl bg-bordo px-4 py-2 text-sm font-bold text-green">Discover authors</Link>}
           </div>
         ) : (
           <ul className="grid grid-cols-1 gap-6 sm:grid-cols-2 xl:grid-cols-3">

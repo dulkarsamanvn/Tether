@@ -18,6 +18,27 @@ A blog management system with a **Laravel** API backend and a **React** frontend
 - Scheduled publishing with timezone selection, rescheduling, and cancellation
 - Author profiles with editable names, bios, profile photos, and public article lists
 - Follow/unfollow authors, public follower counts, and a private following feed
+- Author discovery with name/bio search, sorting, and follow controls
+
+### Discovering authors
+
+Choose **Discover authors** on Home, a profile's follower/following lists, or your
+following feed. The directory at `/dashboard/authors` shows active authors with
+at least one published, non-deleted post. Search names and bios, and sort by
+**Most followed**, **Most posts**, or **Newest authors**. Search and sort apply
+across the entire directory; pagination shows 12 authors per page. Filters and
+the current page stay in the URL for sharing and browser navigation.
+
+Cards link to public profiles and followers, with follow/unfollow controls for
+signed-in readers. Unfollowing asks for confirmation; guests can browse and sign
+in to follow. Your own card is labelled **You**. Follow changes update the card's
+follower count immediately; use **Refresh** to update the ranking.
+
+Public API: `GET /api/authors?q=design&sort=followers&page=1`. Supported sorts are
+`followers` (default), `posts`, and `newest`; `q` searches names/bios only and is
+limited to 100 characters. Responses contain public profile fields, active
+follower/following counts, published post counts, and the viewer's follow state.
+Inactive accounts and private posts are excluded. No new migration is needed.
 
 ### Following authors
 

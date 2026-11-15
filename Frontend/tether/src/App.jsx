@@ -12,6 +12,7 @@ import SavedBlogs from './pages/dashboard/SavedBlogs'
 import TrashBlogs from './pages/dashboard/TrashBlogs'
 import AuthorProfile from './pages/dashboard/AuthorProfile'
 import AuthorConnections from './pages/dashboard/AuthorConnections'
+import DiscoverAuthors from './pages/dashboard/DiscoverAuthors'
 import EditProfile from './pages/dashboard/EditProfile'
 import Following from './pages/dashboard/Following'
 
@@ -27,6 +28,7 @@ const router = createBrowserRouter([
       { path: 'blogs', element: <MyBlogs /> },
       { path: 'saved', element: <SavedBlogs /> },
       { path: 'trash', element: <TrashBlogs /> },
+      { path: 'authors', element: <DiscoverAuthors /> },
       { path: 'authors/:authorId', element: <AuthorProfile /> },
       { path: 'authors/:authorId/followers', element: <AuthorConnections kind="followers" /> },
       { path: 'authors/:authorId/following', element: <AuthorConnections kind="following" /> },
