@@ -58,15 +58,6 @@ const navItems = [
     ),
   },
   {
-    label: 'My Profile',
-    to: '/dashboard/profile',
-    icon: (
-      <svg aria-hidden="true" className="w-5 h-5 shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-        <circle cx="12" cy="8" r="4" strokeWidth={1.8} /><path d="M4 21v-2a8 8 0 0116 0v2" strokeWidth={1.8} strokeLinecap="round" />
-      </svg>
-    ),
-  },
-  {
     label: 'Write',
     to: '/dashboard/write',
     icon: (
@@ -338,7 +329,7 @@ export default function DashboardLayout() {
             </AnimatePresence>
           </div>
 
-          {/* RIGHT: search + theme + font + logout */}
+          {/* RIGHT: search + theme + font + profile + logout */}
           <div className="flex items-center gap-2">
 
             {/* ── Search bar ── */}
@@ -445,6 +436,22 @@ export default function DashboardLayout() {
             </motion.button>
 
             <FontPicker />
+
+            {user && (
+              <NavLink
+                to="/dashboard/profile"
+                end
+                aria-label="My Profile"
+                title="My Profile"
+                onClick={() => setMobileOpen(false)}
+                className={({ isActive }) => `flex h-9 shrink-0 items-center gap-2 rounded-xl px-2 text-sm font-semibold transition-colors focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-bordo md:px-3 ${isActive
+                  ? 'bg-bordo/15 text-green dark:text-bordo'
+                  : 'text-gray-500 hover:bg-gray-100 dark:text-gray-400 dark:hover:bg-gray-800'}`}
+              >
+                <Avatar user={user} className="h-7 w-7 text-xs" />
+                <span className="hidden md:inline">My Profile</span>
+              </NavLink>
+            )}
 
             {/* Logout */}
             <motion.button
