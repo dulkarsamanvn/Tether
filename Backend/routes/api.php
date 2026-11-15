@@ -17,6 +17,7 @@ use Illuminate\Support\Facades\Route;
 // Public routes: no login required
 Route::post('/register', [AuthController::class, 'register']);
 Route::post('/login', [AuthController::class, 'login']);
+Route::get('/authors', [AuthorController::class, 'index']);
 Route::get('/authors/{id}', [AuthorController::class, 'show'])->whereNumber('id');
 Route::get('/authors/{id}/blogs', [AuthorController::class, 'blogs'])->whereNumber('id');
 Route::get('/authors/{id}/followers', [AuthorController::class, 'followers'])->whereNumber('id');
