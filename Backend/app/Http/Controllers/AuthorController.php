@@ -18,6 +18,7 @@ class AuthorController extends Controller
         ]);
         $viewerId = auth('sanctum')->user()?->id ?? 0;
         $authors = User::select(User::PROFILE_FIELDS)->where('is_active', true)
+            ->when($viewerId, fn ($query) => $query->where('id', '!=', $viewerId))
             ->whereHas('blogs', fn ($blogs) => $blogs->where('status', 'published'))
             ->withProfileCounts()
             ->withExists(['followers as is_following' => fn ($followers) => $followers->where('author_follows.follower_id', $viewerId)]);

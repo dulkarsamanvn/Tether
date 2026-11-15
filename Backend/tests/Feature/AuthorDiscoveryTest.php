@@ -107,7 +107,7 @@ class AuthorDiscoveryTest extends TestCase
         $this->assertStringContainsString('q=Discovered', $first->json('next_page_url'));
     }
 
-    public function test_follow_state_is_scoped_to_the_viewer_and_does_not_hide_their_own_profile(): void
+    public function test_follow_state_is_scoped_to_the_viewer_and_their_own_profile_is_excluded(): void
     {
         $viewer = $this->author();
         $author = $this->author();
@@ -115,13 +115,33 @@ class AuthorDiscoveryTest extends TestCase
         $viewer->following()->attach($author->id);
         $this->getJson('/api/authors')->assertOk()->assertJsonPath('data.0.is_following', false);
         $rows = $this->withToken($viewer->createToken('discovery')->plainTextToken)
-            ->getJson('/api/authors')->assertOk()->assertJsonPath('total', 2)->json('data');
+            ->getJson('/api/authors')->assertOk()->assertJsonPath('total', 1)->json('data');
         $states = array_column($rows, 'is_following', 'id');
         $this->assertTrue($states[$author->id]);
-        $this->assertFalse($states[$viewer->id]);
+        $this->assertArrayNotHasKey($viewer->id, $states);
         auth()->forgetGuards();
         $this->withToken($otherViewer->createToken('other-discovery')->plainTextToken)
-            ->getJson('/api/authors')->assertOk()->assertJsonPath('data.0.is_following', false);
+            ->getJson('/api/authors')->assertOk()->assertJsonPath('total', 2)->assertJsonPath('data.0.is_following', false);
+    }
+
+    public function test_self_exclusion_applies_before_search_sort_and_pagination(): void
+    {
+        $viewer = $this->author(['name' => 'MyDiscoveryName', 'bio' => 'MyDiscoveryBio']);
+        $ids = [];
+        for ($i = 0; $i < 13; $i++) $ids[] = $this->author()->id;
+        $this->getJson('/api/authors')->assertOk()->assertJsonPath('total', 14);
+        $this->withToken($viewer->createToken('discovery-exclusion')->plainTextToken);
+
+        foreach (['followers', 'posts', 'newest'] as $sort) {
+            $first = $this->getJson("/api/authors?sort={$sort}")->assertOk()
+                ->assertJsonPath('total', 13)->assertJsonCount(12, 'data');
+            $second = $this->getJson("/api/authors?sort={$sort}&page=2")->assertOk()->assertJsonCount(1, 'data');
+            $this->assertEqualsCanonicalizing($ids, [...array_column($first->json('data'), 'id'), ...array_column($second->json('data'), 'id')]);
+        }
+        foreach (['MyDiscoveryName', 'MyDiscoveryBio'] as $search) {
+            $this->getJson("/api/authors?q={$search}")->assertOk()->assertJsonPath('total', 0);
+        }
+        $this->getJson("/api/authors/{$viewer->id}")->assertOk()->assertJsonPath('id', $viewer->id);
     }
 
     public function test_filters_are_validated_and_an_empty_directory_is_paginated(): void

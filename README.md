@@ -31,7 +31,9 @@ the current page stay in the URL for sharing and browser navigation.
 
 Cards link to public profiles and followers, with follow/unfollow controls for
 signed-in readers. Unfollowing asks for confirmation; guests can browse and sign
-in to follow. Your own card is labelled **You**. Follow changes update the card's
+in to follow. Signed-in readers see other authors; their own profile is excluded
+before search, sorting, and pagination. Guests see the full public directory.
+Follow changes update the card's
 follower count immediately; use **Refresh** to update the ranking.
 
 Public API: `GET /api/authors?q=design&sort=followers&page=1`. Supported sorts are

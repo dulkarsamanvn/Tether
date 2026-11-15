@@ -76,7 +76,6 @@ function AuthorSearch({ query, onSearch }) {
 }
 
 function AuthorResults({ query, sort, page, onPageChange, onRefresh, onClear }) {
-  const { user } = useAuth()
   const [result, setResult] = useState(null)
   useEffect(() => {
     const controller = new AbortController()
@@ -116,7 +115,6 @@ function AuthorResults({ query, sort, page, onPageChange, onRefresh, onClear }) 
             <li key={author.id} className="flex min-w-0 flex-col rounded-2xl border border-gray-100 bg-white p-6 dark:border-gray-800 dark:bg-gray-900">
               <div className="mb-4 flex items-start justify-between gap-3">
                 <Link to={`/dashboard/authors/${author.id}`} className="flex min-w-0 items-center gap-3 rounded-xl focus-visible:outline-bordo"><Avatar user={author} className="h-14 w-14 text-xl" /><h2 className="min-w-0 break-words font-bold text-gray-900 hover:text-bordo dark:text-white">{author.name}</h2></Link>
-                {user?.id === author.id && <span className="rounded-full bg-bordo/15 px-2 py-1 text-xs font-semibold text-gray-600 dark:text-gray-300">You</span>}
               </div>
               {author.bio && <p className="mb-5 line-clamp-3 whitespace-pre-wrap break-words text-sm leading-relaxed text-gray-500 dark:text-gray-400">{author.bio}</p>}
               <div className="mb-5 mt-auto flex flex-wrap gap-x-4 gap-y-2 text-sm text-gray-500 dark:text-gray-400">
