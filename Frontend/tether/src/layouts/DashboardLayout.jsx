@@ -58,6 +58,13 @@ const navItems = [
       </svg>
     ),
   },
+  {
+    label: 'LLM Configuration',
+    to: '/dashboard/llm-configuration',
+    icon: (
+      <svg aria-hidden="true" className="w-5 h-5 shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24"><rect x="4" y="6" width="16" height="14" rx="3" strokeWidth={1.8} /><path d="M12 2v4M8 12h.01M16 12h.01M8 16h8M1 11v4m22-4v4" strokeWidth={1.8} strokeLinecap="round" /></svg>
+    ),
+  },
 ]
 
 export default function DashboardLayout() {

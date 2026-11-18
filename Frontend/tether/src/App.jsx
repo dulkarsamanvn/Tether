@@ -15,6 +15,7 @@ import AuthorConnections from './pages/dashboard/AuthorConnections'
 import DiscoverAuthors from './pages/dashboard/DiscoverAuthors'
 import EditProfile from './pages/dashboard/EditProfile'
 import Following from './pages/dashboard/Following'
+import LlmConfiguration from './pages/dashboard/LlmConfiguration'
 
 // A data router lets the editor finish a pending autosave before dashboard navigation.
 const router = createBrowserRouter([
@@ -35,6 +36,7 @@ const router = createBrowserRouter([
       { path: 'profile', element: <AuthorProfile ownProfile /> },
       { path: 'profile/edit', element: <EditProfile /> },
       { path: 'following', element: <Following /> },
+      { path: 'llm-configuration', element: <LlmConfiguration /> },
       { path: 'blogs/:id/view', element: <BlogView /> },
       { path: 'write', element: <BlogEditor /> },
       { path: 'blogs/:id/edit', element: <BlogEditor /> },

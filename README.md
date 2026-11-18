@@ -20,43 +20,77 @@ A blog management system with a **Laravel** API backend and a **React** frontend
 - Follow/unfollow authors, public follower counts, and a private following feed
 - Author discovery with name/bio search, sorting, and follow controls
 - AI title and excerpt suggestions with individual review and apply controls
+- Private LLM agent configuration with encrypted keys and connection testing
+
+### LLM Configuration
+
+Open **LLM Configuration** in the sidebar to manage your own writing agents.
+Each agent has a name, provider (**OpenAI**, **Google Gemini**, or **Anthropic
+Claude**), model ID, API key, and optional writing-style instructions.
+
+1. Run `php artisan migrate` from `Backend` to create the configurations table.
+2. Choose **Add agent**, enter the provider's model ID and key, and **Save agent**.
+3. Choose **Connect**. This makes a short sample generation request to verify
+   credentials, model access, and the required JSON output. It may use API credits.
+4. A successful connection selects that agent for the editor. Connecting another
+   saved agent switches the selection. A failed new connection keeps the previous
+   working agent selected.
+5. Open the editor and choose **Suggest with AI** to use the connected model.
+
+You can edit agents, keep an existing key by leaving its replacement field blank,
+disconnect without deleting settings, or delete an agent after confirmation.
+Changing a provider requires a new key. Provider, model, or key changes require
+reconnection. Each account can save up to 10 agents and select one at a time.
+
+Keys are encrypted in the database using Laravel's `APP_KEY`, are hidden from
+JSON responses, and are never sent back to the browser or stored in browser
+storage by this feature. Keep the application key with your database backups;
+unreadable encrypted keys must be entered again. Configuration APIs are scoped
+to the authenticated account. Provider URLs are fixed, not user-supplied.
+Environment-level `OPENAI_API_KEY` settings are no longer used by suggestions.
+
+Authenticated APIs: `GET/POST /api/llm-configurations`,
+`GET /api/llm-configurations/active`, `PUT/DELETE /api/llm-configurations/{id}`,
+and `POST /api/llm-configurations/{id}/connect` or `/disconnect`. Connection
+tests are limited to 5 per minute and 20 per day per account. Active-agent
+responses expose the agent ID and revision so the editor can detect changes
+before sending draft text to a different provider or model.
+
+Provider references: [OpenAI structured outputs](https://developers.openai.com/api/docs/guides/structured-outputs),
+[Gemini structured outputs](https://aistudio.google.com/docs/structured-output?generate-content=true),
+and [Claude structured outputs](https://platform.claude.com/docs/en/build-with-claude/structured-outputs).
 
 ### AI title and excerpt suggestions
 
 In the blog editor, write at least 80 characters and choose **Suggest with AI**.
-Laravel sends the current title and draft's plain text to OpenAI's Responses API
+Laravel sends the current title and draft's plain text to your connected agent
 and validates three title options (up to 120 characters each) and one excerpt
 (up to 300 characters). The model is asked to use the draft's language and avoid
 invented claims. Review each result and use **Use title** or **Use excerpt** to
 replace that field. Applied changes enter the existing autosave/recovery flow;
 generation itself never saves, changes status, schedules, or publishes a post.
 
-Configure these values in `Backend/.env` (keep the real key out of Git):
-
-```dotenv
-OPENAI_API_KEY=your_api_key_here
-OPENAI_MODEL=gpt-5.4-mini
-```
-
-Then run `php artisan config:clear` from `Backend` and restart any long-running
-Laravel server. The API key stays on the backend; do not put it in a `VITE_`
-variable. You need an OpenAI API project with billing/credits and model access.
-Without a key, the editor shows an unavailable message and writing still works.
-No new dependencies or database migrations are required.
+The editor shows the connected agent and provider, with **Change agent** linking
+to configuration. If no agent is connected, choose **Configure an LLM**. Writing
+and autosave keep working. Provider access and API credits are managed with your
+provider account. This feature needs no new dependencies.
 
 Authenticated API: `POST /api/editor/suggestions` with optional `title` and
-required plain-text `content` (80-20,000 characters). Limits are 5 requests per
-minute and 50 per day per account, using Laravel's cache. The editor sends only
+required plain-text `content` (80-20,000 characters), with optional paired
+`configuration_id` and `configuration_revision` to verify the selected agent
+before any provider request. Limits are 5 requests per minute and 50 per day per
+account, using Laravel's cache. The editor sends only
 the first 20,000 characters for longer drafts and shows that limit. Requests run
 on demand with a 30-second backend timeout and no automatic retries. No queue
 worker or scheduler is needed for this interactive feature.
 
-Suggestions are not automatically applied. Editing the draft text makes existing
-suggestions stale and disables their apply buttons until regenerated. Authors
+Suggestions are not automatically applied. Editing the draft text or changing
+the connected agent makes existing suggestions stale and disables their apply
+buttons until regenerated. Authors
 can cancel a pending request; late responses cannot overwrite a newer result.
-OpenAI requests use `store: false`, which disables stored response retrieval;
-this does not claim zero provider retention. Drafts, credentials, and raw
-provider errors are not logged by this feature. Tests use fake HTTP responses,
+OpenAI requests use `store: false`; provider data policies still apply to each
+service, and this feature does not claim zero provider retention. Drafts,
+credentials, and raw provider errors are not logged by this feature. Tests use fake HTTP responses,
 including refusals, invalid output, outages, timeouts, and per-account limits.
 
 API references: [Responses API](https://developers.openai.com/api/reference/resources/responses/methods/create)
