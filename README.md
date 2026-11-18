@@ -25,8 +25,8 @@ A blog management system with a **Laravel** API backend and a **React** frontend
 ### LLM Configuration
 
 Open **LLM Configuration** in the sidebar to manage your own writing agents.
-Each agent has a name, provider (**OpenAI**, **Google Gemini**, or **Anthropic
-Claude**), model ID, API key, and optional writing-style instructions.
+Each agent has a name, provider (**OpenAI**, **Google Gemini**, **Anthropic Claude**,
+or **Grok (xAI)**), model ID, API key, and optional writing-style instructions.
 
 1. Run `php artisan migrate` from `Backend` to create the configurations table.
 2. Choose **Add agent**, enter the provider's model ID and key, and **Save agent**.
@@ -58,7 +58,14 @@ before sending draft text to a different provider or model.
 
 Provider references: [OpenAI structured outputs](https://developers.openai.com/api/docs/guides/structured-outputs),
 [Gemini structured outputs](https://aistudio.google.com/docs/structured-output?generate-content=true),
-and [Claude structured outputs](https://platform.claude.com/docs/en/build-with-claude/structured-outputs).
+[Claude structured outputs](https://platform.claude.com/docs/en/build-with-claude/structured-outputs),
+and [Grok structured outputs](https://docs.x.ai/developers/model-capabilities/text/structured-outputs).
+
+For Grok, choose **Grok (xAI)**, use the suggested `grok-4.7` model ID (or another
+compatible model available to your account), and enter an xAI API key. The
+backend uses `https://api.x.ai/v1/responses`, requests structured JSON with low
+reasoning effort, and sets `store: false`. Reasoning blocks are ignored; only
+the validated title and excerpt suggestions are returned to the editor.
 
 ### AI title and excerpt suggestions
 
@@ -88,7 +95,7 @@ Suggestions are not automatically applied. Editing the draft text or changing
 the connected agent makes existing suggestions stale and disables their apply
 buttons until regenerated. Authors
 can cancel a pending request; late responses cannot overwrite a newer result.
-OpenAI requests use `store: false`; provider data policies still apply to each
+OpenAI and Grok requests use `store: false`; provider data policies still apply to each
 service, and this feature does not claim zero provider retention. Drafts,
 credentials, and raw provider errors are not logged by this feature. Tests use fake HTTP responses,
 including refusals, invalid output, outages, timeouts, and per-account limits.

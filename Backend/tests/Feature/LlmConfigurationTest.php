@@ -50,7 +50,7 @@ class LlmConfigurationTest extends TestCase
         $this->assertArrayNotHasKey('api_key', $agent->toArray());
         $this->assertStringNotContainsString('test-secret-key', $response->getContent());
         $this->assertArrayNotHasKey('api_key', $response->json('configurations.0'));
-        $this->getJson('/api/llm-configurations')->assertOk()->assertJsonCount(1, 'configurations')->assertJsonCount(3, 'providers');
+        $this->getJson('/api/llm-configurations')->assertOk()->assertJsonCount(1, 'configurations')->assertJsonCount(4, 'providers')->assertJsonPath('providers.3.id', 'grok');
         $this->getJson('/api/llm-configurations/active')->assertOk()->assertExactJson(['configuration' => null]);
         Http::assertNothingSent();
     }
@@ -110,6 +110,12 @@ class LlmConfigurationTest extends TestCase
             Http::assertSent(function (Request $request) use ($provider, $agent) {
                 if ($request->url() !== $this->url($provider)) return false;
                 if ($provider === 'gemini') return $request->hasHeader('x-goog-api-key', "secret-for-{$provider}") && str_contains($request['systemInstruction']['parts'][0]['text'], 'Write warmly.') && isset($request['generationConfig']['responseJsonSchema']);
+                if ($provider === 'grok') return $request->hasHeader('Authorization', 'Bearer secret-for-grok')
+                    && $request['model'] === 'grok-4.7' && $request['store'] === false
+                    && $request['max_output_tokens'] === 2000 && $request['reasoning']['effort'] === 'low'
+                    && $request['text']['format']['strict'] === true
+                    && str_contains($request['input'][0]['content'], 'Write warmly.')
+                    && isset(json_decode($request['input'][1]['content'], true)['draft_text']);
                 return $request->hasHeader('Authorization', "Bearer secret-for-{$provider}") && $request['model'] === $agent->model
                     && ($provider === 'openai' ? $request['store'] === false : $request->hasHeader('anthropic-version', '2026-10-21'));
             });
@@ -190,6 +196,25 @@ class LlmConfigurationTest extends TestCase
         $this->agent($user);
         $user->delete();
         $this->assertDatabaseCount('llm_configurations', 0);
+    }
+
+    public function test_grok_connection_errors_refusals_and_incomplete_results_keep_the_previous_agent(): void
+    {
+        $user = $this->reader();
+        $active = $this->agent($user);
+        $sequence = Http::fakeSequence()
+            ->push(['error' => 'secret-grok-key upstream detail'], 401)
+            ->push(['error' => 'Provider quota'], 429)
+            ->push(['status' => 'incomplete', 'output' => []])
+            ->push(['status' => 'completed', 'output' => [['type' => 'message', 'role' => 'assistant', 'content' => [['type' => 'refusal', 'refusal' => 'Raw refusal']]]]]);
+        foreach ([[503, 'ai_auth_error'], [503, 'ai_busy'], [502, 'ai_invalid_response'], [422, 'ai_refused']] as $i => [$status, $code]) {
+            $agent = $user->llmConfigurations()->create([...$this->input(), 'name' => "Grok {$i}", 'provider' => 'grok', 'model' => 'grok-4.7', 'api_key' => 'secret-grok-key']);
+            $response = $this->postJson("/api/llm-configurations/{$agent->id}/connect")->assertStatus($status)
+                ->assertJsonPath('code', $code)->assertJsonPath('active_configuration_id', $active->id);
+            $this->assertStringNotContainsString('secret-grok-key', $response->getContent());
+            $this->assertStringNotContainsString('upstream detail', $response->getContent());
+        }
+        Http::assertSentCount(4);
     }
 
     public function test_validation_restricts_providers_model_paths_keys_and_names(): void
@@ -274,6 +299,7 @@ class LlmConfigurationTest extends TestCase
             'openai' => 'https://api.openai.com/v1/responses',
             'gemini' => 'https://generativelanguage.googleapis.com/v1beta/models/gemini-3.5-flash-lite:generateContent',
             'anthropic' => 'https://api.anthropic.com/v1/messages',
+            'grok' => 'https://api.x.ai/v1/responses',
         };
     }
 
@@ -281,7 +307,7 @@ class LlmConfigurationTest extends TestCase
     {
         $json = json_encode($result ?? self::RESULT);
         return match ($provider) {
-            'openai' => ['status' => 'completed', 'output' => [['type' => 'message', 'role' => 'assistant', 'content' => [['type' => 'output_text', 'text' => $json]]]]],
+            'openai', 'grok' => ['status' => 'completed', 'output' => [['type' => 'reasoning', 'encrypted_content' => 'Private reasoning'], ['type' => 'message', 'role' => 'assistant', 'content' => [['type' => 'output_text', 'text' => $json]]]]],
             'gemini' => ['candidates' => [['finishReason' => 'STOP', 'content' => ['parts' => [['thought' => true, 'text' => 'Private reasoning'], ['text' => $json]]]]]],
             'anthropic' => ['role' => 'assistant', 'stop_reason' => 'end_turn', 'content' => [['type' => 'text', 'text' => $json]]],
         };

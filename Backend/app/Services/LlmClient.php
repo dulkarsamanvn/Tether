@@ -25,6 +25,12 @@ class LlmClient
                     'instructions' => $instructions, 'input' => $input,
                     'text' => ['format' => ['type' => 'json_schema', 'name' => 'editorial_suggestions', 'strict' => true, 'schema' => $schema]],
                 ]),
+                'grok' => $http->withToken($key)->post('https://api.x.ai/v1/responses', [
+                    'model' => $agent->model, 'store' => false, 'max_output_tokens' => 2000,
+                    'reasoning' => ['effort' => 'low'],
+                    'input' => [['role' => 'system', 'content' => $instructions], ['role' => 'user', 'content' => $input]],
+                    'text' => ['format' => ['type' => 'json_schema', 'name' => 'editorial_suggestions', 'strict' => true, 'schema' => $schema]],
+                ]),
                 'gemini' => $http->withHeaders(['x-goog-api-key' => $key])->post('https://generativelanguage.googleapis.com/v1beta/models/'.rawurlencode($agent->model).':generateContent', [
                     'systemInstruction' => ['parts' => [['text' => $instructions]]],
                     'contents' => [['role' => 'user', 'parts' => [['text' => $input]]]],
@@ -54,11 +60,11 @@ class LlmClient
         $data = $response->json();
         if (! is_array($data)) $this->invalidResponse();
         return match ($agent->provider) {
-            'openai' => $this->openaiText($data), 'gemini' => $this->geminiText($data), 'anthropic' => $this->anthropicText($data),
+            'openai', 'grok' => $this->responsesText($data), 'gemini' => $this->geminiText($data), 'anthropic' => $this->anthropicText($data),
         };
     }
 
-    private function openaiText(array $data): string
+    private function responsesText(array $data): string
     {
         if (($data['status'] ?? null) !== 'completed' || ! is_array($data['output'] ?? null)) $this->invalidResponse();
         $text = '';

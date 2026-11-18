@@ -11,6 +11,7 @@ class LlmConfiguration extends Model
         'openai' => ['label' => 'OpenAI', 'default_model' => 'gpt-5.4-mini'],
         'gemini' => ['label' => 'Google Gemini', 'default_model' => 'gemini-3.5-flash-lite'],
         'anthropic' => ['label' => 'Anthropic Claude', 'default_model' => 'claude-haiku-5-5'],
+        'grok' => ['label' => 'Grok (xAI)', 'default_model' => 'grok-4.7'],
     ];
 
     protected $fillable = ['name', 'provider', 'model', 'api_key', 'instructions'];
