@@ -5,6 +5,7 @@ use App\Http\Controllers\AuthorController;
 use App\Http\Controllers\ProfileController;
 use App\Http\Controllers\FollowController;
 use App\Http\Controllers\EditorialSuggestionController;
+use App\Http\Controllers\LlmConfigurationController;
 use App\Http\Controllers\BlogController;
 use App\Http\Controllers\BookmarkController;
 use App\Http\Controllers\CategoryController;
@@ -35,6 +36,13 @@ Route::get('/tags', [TagController::class, 'index']);
 
 // Protected routes: login required
 Route::middleware('auth:sanctum')->group(function () {
+    Route::get('/llm-configurations', [LlmConfigurationController::class, 'index']);
+    Route::get('/llm-configurations/active', [LlmConfigurationController::class, 'active']);
+    Route::post('/llm-configurations', [LlmConfigurationController::class, 'store']);
+    Route::put('/llm-configurations/{id}', [LlmConfigurationController::class, 'update'])->whereNumber('id');
+    Route::post('/llm-configurations/{id}/connect', [LlmConfigurationController::class, 'connect'])->whereNumber('id')->middleware('throttle:llm-connections');
+    Route::post('/llm-configurations/{id}/disconnect', [LlmConfigurationController::class, 'disconnect'])->whereNumber('id');
+    Route::delete('/llm-configurations/{id}', [LlmConfigurationController::class, 'destroy'])->whereNumber('id');
     Route::post('/editor/suggestions', [EditorialSuggestionController::class, 'store'])->middleware('throttle:editor-suggestions');
     Route::post('/logout', [AuthController::class, 'logout']);
     Route::get('/profile', [ProfileController::class, 'show']);

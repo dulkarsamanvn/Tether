@@ -16,6 +16,8 @@ class EditorialSuggestionController extends Controller
         $input = $request->validate([
             'title' => ['nullable', 'string', 'max:255'],
             'content' => ['required', 'string', 'max:20000'],
+            'configuration_id' => ['nullable', 'required_with:configuration_revision', 'integer', 'min:1'],
+            'configuration_revision' => ['nullable', 'required_with:configuration_id', 'integer', 'min:1'],
         ]);
         $content = trim(preg_replace('/\s+/u', ' ', $input['content']));
         if (mb_strlen($content) < 80) {
@@ -23,7 +25,7 @@ class EditorialSuggestionController extends Controller
         }
 
         try {
-            return response()->json($suggestions->generate($input['title'] ?? '', $content));
+            return response()->json($suggestions->generate($request->user(), $input['title'] ?? '', $content, $input['configuration_id'] ?? null, $input['configuration_revision'] ?? null));
         } catch (EditorialSuggestionException $error) {
             // Never return upstream errors, credentials, or draft text to the client.
             return response()->json(['message' => $error->getMessage(), 'code' => $error->errorCode], $error->status);

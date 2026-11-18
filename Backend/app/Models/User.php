@@ -63,6 +63,11 @@ class User extends Authenticatable
         return $this->hasMany(Blog::class);
     }
 
+    public function llmConfigurations(): HasMany
+    {
+        return $this->hasMany(LlmConfiguration::class);
+    }
+
     protected function avatarUrl(): Attribute
     {
         return Attribute::get(fn () => $this->avatar ? asset('storage/'.$this->avatar) : null);
