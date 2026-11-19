@@ -141,20 +141,13 @@ export default function DashboardLayout() {
 
           <div className="flex items-center gap-3 min-w-0 flex-1">
             {/* Icon mark */}
-            <div className="relative w-9 h-9 shrink-0">
-              <div
-                className="absolute inset-0 rounded-xl"
-                style={{
-                  background: '#E89951',
-                  boxShadow: '0 0 0 1px rgba(240,231,111,0.25), 0 6px 16px rgba(232,153,81,0.4)',
-                }}
-              />
-              <svg viewBox="0 0 40 40" fill="none" className="absolute inset-0 w-full h-full p-2">
-                <rect x="4"    y="7"  width="32" height="7"  rx="3.5" fill="#18190F" opacity="0.95"/>
-                <rect x="14.5" y="14" width="11" height="19" rx="3.5" fill="#18190F" opacity="0.95"/>
-                <circle cx="20" cy="35" r="2.5" fill="#F0E76F"/>
-              </svg>
-            </div>
+            <img
+              src="/favicon.svg?v=tether-pen-v1"
+              alt="Tether logo"
+              width={36}
+              height={36}
+              className="h-9 w-9 shrink-0"
+            />
 
             {/* Wordmark */}
             <AnimatePresence initial={false}>

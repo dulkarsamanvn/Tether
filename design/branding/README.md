@@ -1,8 +1,8 @@
 # Approved Tether logo
 
-Status: approved by the user on November 19, 2026. The approved artwork is used
-in `Frontend/tether/public/favicon.svg`. The preview files remain separate from
-the application.
+Status: approved by the user on November 19, 2026. The approved artwork in
+`Frontend/tether/public/favicon.svg` is shared by the browser favicon and dashboard
+sidebar. The preview files remain separate from the application.
 
 - `tether-mark-proposal.svg`: scalable source artwork with a transparent exterior.
 - `tether-mark-preview.png`: browser-rendered preview of the SVG on the app's cream background.
