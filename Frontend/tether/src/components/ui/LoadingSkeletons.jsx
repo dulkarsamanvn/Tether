@@ -26,3 +26,7 @@ function BlogCardPlaceholders({ count = 6 }) {
   </div>
 }
 
+export function SavedBlogsSkeleton() {
+  return <SkeletonStatus label="Loading saved blogs"><BlogCardPlaceholders /></SkeletonStatus>
+}
+
