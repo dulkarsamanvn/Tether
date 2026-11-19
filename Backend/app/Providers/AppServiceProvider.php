@@ -22,6 +22,10 @@ class AppServiceProvider extends ServiceProvider
      */
     public function boot(): void
     {
+        RateLimiter::for('llm-models', fn (Request $request) => [
+            Limit::perMinute(10)->by('llm-models:minute:'.$request->user()->id),
+            Limit::perDay(100)->by('llm-models:day:'.$request->user()->id),
+        ]);
         RateLimiter::for('llm-connections', fn (Request $request) => [
             Limit::perMinute(5)->by('llm-connect:minute:'.$request->user()->id),
             Limit::perDay(20)->by('llm-connect:day:'.$request->user()->id),

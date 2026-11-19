@@ -56,6 +56,25 @@ tests are limited to 5 per minute and 20 per day per account. Active-agent
 responses expose the agent ID and revision so the editor can detect changes
 before sending draft text to a different provider or model.
 
+`POST /api/llm-configurations/models` lists models using a `provider` and either
+an entered `api_key` or an owned `configuration_id` with the same provider.
+An entered key overrides the saved key for this lookup only. Fetching never
+saves a key, changes the active agent, or marks a connection as verified.
+Gemini results include models supporting `generateContent`; Grok uses its
+language-model catalog. OpenAI's catalog can include models unsuitable for
+suggestions, so Connect still verifies actual structured generation.
+Paginated catalogs are bounded to 5 pages, 1,000 choices, and a 25-second
+request budget; partial lists have `truncated: true`. Model lookup is limited
+to 10 requests per minute and 100 per day per account, separately from connection
+tests. Keys travel in provider headers, not URLs, and model responses use `no-store`.
+
+Connection tests, suggestions, and model lookup return safe errors that distinguish
+invalid credentials (`ai_auth_error`), permissions (`ai_permission_error`),
+unavailable models (`ai_model_error`), billing (`ai_billing_error`), usage quotas
+(`ai_quota_error`), and short-term rate limits (`ai_rate_limit`). Providers do not
+always distinguish these causes; ambiguous Gemini resource-exhaustion responses
+ask the user to check project quotas. Raw provider errors are never returned.
+
 Provider references: [OpenAI structured outputs](https://developers.openai.com/api/docs/guides/structured-outputs),
 [Gemini structured outputs](https://aistudio.google.com/docs/structured-output?generate-content=true),
 [Claude structured outputs](https://platform.claude.com/docs/en/build-with-claude/structured-outputs),

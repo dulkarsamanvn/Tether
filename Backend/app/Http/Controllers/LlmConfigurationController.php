@@ -6,6 +6,8 @@ use App\Exceptions\EditorialSuggestionException;
 use App\Models\LlmConfiguration;
 use App\Models\User;
 use App\Services\EditorialSuggestions;
+use App\Services\LlmClient;
+use App\Services\LlmModels;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
@@ -25,6 +27,26 @@ class LlmConfigurationController extends Controller
         $this->assertActive($request);
         $agent = $request->user()->llmConfigurations()->where('is_active', true)->where('status', 'connected')->first();
         return response()->json(['configuration' => $agent?->publicData()]);
+    }
+
+    public function models(Request $request, LlmModels $models, LlmClient $client): JsonResponse
+    {
+        $this->assertActive($request);
+        $input = $request->validate([
+            'provider' => ['required', Rule::in(array_keys(LlmConfiguration::PROVIDERS))],
+            'configuration_id' => ['nullable', 'integer', 'min:1'],
+            'api_key' => ['nullable', 'string', 'min:10', 'max:4096', 'regex:/^[\x21-\x7E]+$/'],
+        ]);
+        $agent = ! empty($input['configuration_id']) ? $request->user()->llmConfigurations()->findOrFail($input['configuration_id']) : null;
+        if (empty($input['api_key']) && (! $agent || $agent->provider !== $input['provider'])) {
+            throw ValidationException::withMessages(['api_key' => 'Enter an API key for this provider before fetching models.']);
+        }
+        try {
+            $key = filled($input['api_key'] ?? null) ? $input['api_key'] : $client->apiKey($agent);
+            return response()->json($models->discover($input['provider'], $key))->header('Cache-Control', 'no-store');
+        } catch (EditorialSuggestionException $error) {
+            return response()->json(['message' => $error->getMessage(), 'code' => $error->errorCode], $error->status)->header('Cache-Control', 'no-store');
+        }
     }
 
     public function store(Request $request): JsonResponse

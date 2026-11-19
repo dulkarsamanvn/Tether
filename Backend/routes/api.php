@@ -38,6 +38,7 @@ Route::get('/tags', [TagController::class, 'index']);
 Route::middleware('auth:sanctum')->group(function () {
     Route::get('/llm-configurations', [LlmConfigurationController::class, 'index']);
     Route::get('/llm-configurations/active', [LlmConfigurationController::class, 'active']);
+    Route::post('/llm-configurations/models', [LlmConfigurationController::class, 'models'])->middleware('throttle:llm-models');
     Route::post('/llm-configurations', [LlmConfigurationController::class, 'store']);
     Route::put('/llm-configurations/{id}', [LlmConfigurationController::class, 'update'])->whereNumber('id');
     Route::post('/llm-configurations/{id}/connect', [LlmConfigurationController::class, 'connect'])->whereNumber('id')->middleware('throttle:llm-connections');

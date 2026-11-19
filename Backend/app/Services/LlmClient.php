@@ -12,11 +12,7 @@ class LlmClient
 {
     public function request(LlmConfiguration $agent, string $instructions, string $input, array $schema): string
     {
-        try {
-            $key = $agent->api_key;
-        } catch (DecryptException) {
-            throw new EditorialSuggestionException('This saved API key cannot be read. Replace it in LLM Configuration and reconnect.', 'ai_key_unavailable', 503);
-        }
+        $key = $this->apiKey($agent);
         $http = Http::acceptJson()->connectTimeout(5)->timeout(30)->withoutRedirecting();
         try {
             $response = match ($agent->provider) {
@@ -45,23 +41,21 @@ class LlmClient
         } catch (ConnectionException) {
             throw new EditorialSuggestionException('The model took too long to respond. Please try again.', 'ai_timeout', 504);
         }
-        if (in_array($response->status(), [401, 403], true)) {
-            throw new EditorialSuggestionException('The provider rejected this API key. Check the key and permissions in LLM Configuration.', 'ai_auth_error', 503);
-        }
-        if (in_array($response->status(), [400, 404], true)) {
-            throw new EditorialSuggestionException('The provider could not use this model. Check the model ID and its structured-output support.', 'ai_model_error', 503);
-        }
-        if ($response->status() === 429) {
-            throw new EditorialSuggestionException('The provider has reached a quota or rate limit. Check your credits or try again later.', 'ai_busy', 503);
-        }
-        if (! $response->successful()) {
-            throw new EditorialSuggestionException('The AI provider is temporarily unavailable. Please try again later.', 'ai_unavailable', 503);
-        }
+        LlmProviderErrors::check($response, $agent->provider);
         $data = $response->json();
         if (! is_array($data)) $this->invalidResponse();
         return match ($agent->provider) {
             'openai', 'grok' => $this->responsesText($data), 'gemini' => $this->geminiText($data), 'anthropic' => $this->anthropicText($data),
         };
+    }
+
+    public function apiKey(LlmConfiguration $agent): string
+    {
+        try {
+            return $agent->api_key;
+        } catch (DecryptException) {
+            throw new EditorialSuggestionException('This saved API key cannot be read. Replace it in LLM Configuration and reconnect.', 'ai_key_unavailable', 503);
+        }
     }
 
     private function responsesText(array $data): string

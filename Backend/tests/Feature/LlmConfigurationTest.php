@@ -207,7 +207,7 @@ class LlmConfigurationTest extends TestCase
             ->push(['error' => 'Provider quota'], 429)
             ->push(['status' => 'incomplete', 'output' => []])
             ->push(['status' => 'completed', 'output' => [['type' => 'message', 'role' => 'assistant', 'content' => [['type' => 'refusal', 'refusal' => 'Raw refusal']]]]]);
-        foreach ([[503, 'ai_auth_error'], [503, 'ai_busy'], [502, 'ai_invalid_response'], [422, 'ai_refused']] as $i => [$status, $code]) {
+        foreach ([[503, 'ai_auth_error'], [503, 'ai_rate_limit'], [502, 'ai_invalid_response'], [422, 'ai_refused']] as $i => [$status, $code]) {
             $agent = $user->llmConfigurations()->create([...$this->input(), 'name' => "Grok {$i}", 'provider' => 'grok', 'model' => 'grok-4.7', 'api_key' => 'secret-grok-key']);
             $response = $this->postJson("/api/llm-configurations/{$agent->id}/connect")->assertStatus($status)
                 ->assertJsonPath('code', $code)->assertJsonPath('active_configuration_id', $active->id);

@@ -82,7 +82,7 @@ class EditorialSuggestionTest extends TestCase
         Sanctum::actingAs($this->author());
         $sequence = Http::fakeSequence();
         foreach ([401, 429, 500] as $status) $sequence->push(['error' => ['message' => 'test-only-secret: upstream sensitive detail']], $status);
-        foreach ([401 => 'ai_auth_error', 429 => 'ai_busy', 500 => 'ai_unavailable'] as $status => $code) {
+        foreach ([401 => 'ai_auth_error', 429 => 'ai_rate_limit', 500 => 'ai_unavailable'] as $status => $code) {
             $response = $this->postJson('/api/editor/suggestions', $this->input())->assertStatus(503)->assertJsonPath('code', $code);
             $this->assertStringNotContainsString('test-only-secret', $response->getContent());
             $this->assertStringNotContainsString('upstream sensitive detail', $response->getContent());
