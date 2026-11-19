@@ -3,6 +3,7 @@ import { Link, Navigate } from 'react-router-dom'
 import api from '../../api/api'
 import { useAuth } from '../../hooks/useAuth'
 import ModelPicker from '../../components/ui/ModelPicker'
+import FlashMessage from '../../components/ui/FlashMessage'
 
 const inputClass = 'w-full min-w-0 rounded-xl border border-gray-200 bg-gray-50 px-3 py-2.5 text-sm text-gray-900 outline-none focus:border-bordo focus:ring-2 focus:ring-bordo/15 disabled:opacity-50 dark:border-gray-700 dark:bg-gray-800 dark:text-white'
 const buttonClass = 'rounded-xl border border-gray-200 px-4 py-2 text-sm font-semibold text-gray-600 hover:border-bordo focus-visible:outline-bordo disabled:cursor-not-allowed disabled:opacity-50 dark:border-gray-700 dark:text-gray-300'
@@ -71,8 +72,8 @@ function ConfigurationSession() {
       <div className="min-w-0"><p className="mb-1 text-xs font-bold uppercase tracking-wide text-bordo">{active ? 'Connected for suggestions' : 'No connected agent'}</p><h2 className="break-words font-bold text-gray-900 dark:text-white">{active?.name ?? 'Choose the model that works for you'}</h2><p className="mt-1 break-words text-sm text-gray-500 dark:text-gray-400">{active ? `${active.provider_name} · ${active.model}` : 'Save an agent below, then connect it to start using AI in the editor.'}</p></div>
       {active && <Link to="/dashboard/write" className={buttonClass}>Open editor</Link>}
     </section>
-    {error && <p role="alert" className="mb-5 rounded-xl bg-red-50 p-4 text-sm text-red-600 dark:bg-red-950/20 dark:text-red-400">{error}</p>}
-    {notice && <p role="status" className="mb-5 rounded-xl bg-sage/15 p-4 text-sm text-gray-700 dark:text-gray-300">{notice}</p>}
+    {error && <FlashMessage message={error} onDismiss={setError} variant="error" className="mb-5" />}
+    {notice && <FlashMessage message={notice} onDismiss={setNotice} className="mb-5" />}
 
     {formVisible && <div ref={formContainer}><AgentForm key={editing?.id ?? 'new'} agent={editing} providers={data.providers} busy={busy} onSave={(values) => mutate('save', editing, values)} onCancel={data.configurations.length ? () => { setShowForm(false); setEditing(null) } : null} /></div>}
 
@@ -98,7 +99,7 @@ function ConfigurationSession() {
 
     <dialog ref={deleteDialog} aria-labelledby="delete-agent-heading" onClose={() => setDeleting(null)} onCancel={(event) => { if (busy) event.preventDefault() }} className="fixed inset-0 m-auto w-[calc(100%-2rem)] max-w-md rounded-2xl border border-gray-100 bg-white p-6 shadow-2xl backdrop:bg-black/40 dark:border-gray-800 dark:bg-gray-900">
       <h2 id="delete-agent-heading" className="break-words text-lg font-bold text-gray-900 dark:text-white">Delete {deleting?.name}?</h2><p className="mt-2 text-sm text-gray-500 dark:text-gray-400">This removes the saved key and agent settings.{deleting?.is_active ? ' Connect another agent to continue using AI suggestions.' : ''}</p>
-      {error && <p role="alert" className="mt-4 text-sm text-red-500">{error}</p>}
+      {error && <FlashMessage message={error} onDismiss={setError} variant="error" className="mt-4" />}
       <div className="mt-6 flex flex-wrap justify-end gap-3"><button type="button" autoFocus disabled={busy} onClick={() => deleteDialog.current.close()} className={buttonClass}>Cancel</button><button type="button" disabled={busy} onClick={() => mutate('delete', deleting)} className="rounded-xl bg-red-600 px-4 py-2 text-sm font-bold text-white disabled:opacity-50">{busy ? 'Deleting…' : 'Delete agent'}</button></div>
     </dialog>
   </div>
@@ -163,7 +164,7 @@ function AgentForm({ agent, providers, busy, onSave, onCancel }) {
         <div className="mb-2 flex flex-wrap items-center justify-between gap-2"><label htmlFor={manualModel ? 'agent-model' : undefined} className="text-sm font-semibold text-gray-700 dark:text-gray-200">Model ID</label>{discovery?.models.length > 0 && <button type="button" onClick={() => setManualModel((value) => !value)} className="text-sm font-semibold text-bordo underline decoration-bordo/40 underline-offset-4 focus-visible:outline-bordo">{manualModel ? 'Choose from list' : 'Enter manually'}</button>}</div>
         {manualModel || !discovery?.models.length ? <input id="agent-model" value={values.model} required maxLength={100} onChange={(event) => setField('model', event.target.value)} autoCapitalize="none" spellCheck={false} className={`${inputClass} font-mono`} /> : <ModelPicker models={discovery.models} value={values.model} onChange={(value) => setField('model', value)} disabled={busy || fetching} />}
         {fetching && <p role="status" className="mt-3 text-sm text-gray-500 dark:text-gray-400">Loading models from the provider…</p>}
-        {modelError && <p role="alert" className="mt-3 text-sm text-red-600 dark:text-red-400">{modelError}</p>}
+        {modelError && <FlashMessage message={modelError} onDismiss={setModelError} variant="error" className="mt-3" />}
         {discovery && <p role="status" className="mt-3 text-sm text-gray-500 dark:text-gray-400">{discovery.models.length === 0 ? 'No models were returned for this key. You can enter a model ID manually.' : `${discovery.models.length} ${discovery.models.length === 1 ? 'model' : 'models'} fetched. Search the list or enter an ID manually.`}{discovery.truncated ? ' This list is partial; enter an unlisted ID manually.' : ''}</p>}
         {!manualModel && discovery?.models.length > 0 && !discovery.models.some((model) => model.id === values.model) && <p className="mt-2 text-sm text-gray-500 dark:text-gray-400">Your current ID was not in this list. Choose a listed model or keep the ID using manual entry.</p>}
         <p className="mt-3 text-sm text-gray-500 dark:text-gray-400">Choose a text model with structured JSON output. After saving, Connect checks model access and a sample response.</p>
