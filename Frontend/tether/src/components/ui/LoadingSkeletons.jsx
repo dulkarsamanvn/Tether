@@ -54,3 +54,30 @@ export function TrashBlogsSkeleton() {
   </SkeletonStatus>
 }
 
+function PageHeadingPlaceholder() {
+  return <div className="mb-6 flex flex-wrap items-center justify-between gap-4">
+    <div className="min-w-0 space-y-2"><SkeletonBlock className="h-8 w-64 max-w-full" /><SkeletonBlock className="h-4 w-80 max-w-full" /></div>
+    <SkeletonBlock className="h-10 w-28" rounded="rounded-xl" />
+  </div>
+}
+
+export function LlmConfigurationSkeleton() {
+  return <SkeletonStatus label="Loading LLM configuration" className="mx-auto max-w-6xl">
+    <PageHeadingPlaceholder />
+    <div className="mb-8 flex flex-wrap items-center justify-between gap-4 rounded-2xl border border-gray-100 bg-white p-5 dark:border-gray-800 dark:bg-gray-900">
+      <div className="min-w-0 space-y-3"><SkeletonBlock className="h-3 w-44 max-w-full" /><SkeletonBlock className="h-5 w-48 max-w-full" /><SkeletonBlock className="h-4 w-72 max-w-full" /></div>
+      <SkeletonBlock className="h-10 w-28" rounded="rounded-xl" />
+    </div>
+    <div className="mb-5 flex items-center justify-between gap-4"><SkeletonBlock className="h-6 w-40" /><SkeletonBlock className="h-10 w-24" rounded="rounded-xl" /></div>
+    <div className="mb-5 space-y-2"><SkeletonBlock className="h-4 w-3/4" /><SkeletonBlock className="h-4 w-2/3" /></div>
+    <div className="grid gap-5 md:grid-cols-2">
+      {Array.from({ length: 2 }, (_, index) => <div key={index} className="min-w-0 space-y-4 rounded-2xl border border-gray-100 bg-white p-5 dark:border-gray-800 dark:bg-gray-900">
+        <div className="flex items-center justify-between gap-3"><SkeletonBlock className="h-5 w-32" /><SkeletonBlock className="h-6 w-20" rounded="rounded-full" /></div>
+        <div className="space-y-2"><SkeletonBlock className="h-4 w-32" /><SkeletonBlock className="h-3 w-48 max-w-full" /></div>
+        <SkeletonBlock className="h-3 w-3/4" />
+        <div className="flex flex-wrap gap-2 pt-2"><SkeletonBlock className="h-9 w-28" rounded="rounded-xl" /><SkeletonBlock className="h-9 w-20" rounded="rounded-xl" /><SkeletonBlock className="h-9 w-16" rounded="rounded-xl" /></div>
+      </div>)}
+    </div>
+  </SkeletonStatus>
+}
+
