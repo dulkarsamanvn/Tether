@@ -3,6 +3,7 @@ import { Link, Navigate } from 'react-router-dom'
 import api from '../../api/api'
 import Avatar from '../../components/ui/Avatar'
 import { useAuth } from '../../hooks/useAuth'
+import { EditProfileSkeleton } from '../../components/ui/LoadingSkeletons'
 
 const inputClass = 'w-full rounded-xl border border-gray-200 bg-gray-50 px-3 py-2.5 text-sm text-gray-900 outline-none focus:border-bordo focus:ring-2 focus:ring-bordo/15 dark:border-gray-700 dark:bg-gray-800 dark:text-white'
 
@@ -67,7 +68,8 @@ function ProfileForm() {
     } finally { setSaving(false) }
   }
 
-  if (!profile) return <div className="mx-auto max-w-6xl py-12 text-center">{error ? <><p role="alert" className="mb-4 text-red-500">{error}</p><button type="button" onClick={() => { setError(null); setVersion((value) => value + 1) }} className="font-semibold text-bordo underline">Try again</button></> : <p role="status" className="text-gray-500">Loading your profile…</p>}</div>
+  if (!profile && !error) return <EditProfileSkeleton />
+  if (!profile) return <div className="mx-auto max-w-6xl py-12 text-center"><p role="alert" className="mb-4 text-red-500">{error}</p><button type="button" onClick={() => { setError(null); setVersion((value) => value + 1) }} className="font-semibold text-bordo underline">Try again</button></div>
   const avatarUrl = avatar ? preview : removeAvatar ? null : profile.avatar_url
   return (
     <div className="mx-auto w-full max-w-6xl">

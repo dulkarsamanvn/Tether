@@ -97,3 +97,24 @@ export function AuthorProfileSkeleton() {
   </SkeletonStatus>
 }
 
+export function EditProfileSkeleton() {
+  return <SkeletonStatus label="Loading your profile" className="mx-auto w-full max-w-6xl">
+    <PageHeadingPlaceholder />
+    <div className="rounded-2xl border border-gray-100 bg-white p-6 sm:p-8 dark:border-gray-800 dark:bg-gray-900">
+      <div className="grid min-w-0 gap-8 lg:grid-cols-[16rem_minmax(0,1fr)]">
+        <div className="min-w-0 self-start space-y-5 rounded-2xl border border-gray-100 p-6 dark:border-gray-800">
+          <SkeletonBlock className="mx-auto h-4 w-28" />
+          <SkeletonBlock className="mx-auto h-24 w-24" rounded="rounded-full" />
+          <SkeletonBlock className="h-9 w-full" rounded="rounded-xl" />
+          <SkeletonBlock className="mx-auto h-3 w-3/4" />
+        </div>
+        <div className="min-w-0 space-y-6">
+          <div className="space-y-2"><SkeletonBlock className="h-5 w-32" /><SkeletonBlock className="h-4 w-4/5" /></div>
+          <div className="space-y-2"><SkeletonBlock className="h-4 w-28" /><SkeletonBlock className="h-11 w-full" rounded="rounded-xl" /></div>
+          <div className="space-y-2"><SkeletonBlock className="h-4 w-12" /><SkeletonBlock className="h-32 w-full" rounded="rounded-xl" /><SkeletonBlock className="ml-auto h-3 w-14" /></div>
+          <div className="flex flex-wrap items-center justify-between gap-4 border-t border-gray-100 pt-5 dark:border-gray-800"><SkeletonBlock className="h-3 w-64 max-w-full" /><SkeletonBlock className="h-10 w-32" rounded="rounded-xl" /></div>
+        </div>
+      </div>
+    </div>
+  </SkeletonStatus>
+}
