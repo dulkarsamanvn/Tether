@@ -2,6 +2,7 @@ import { useEffect, useRef, useState } from 'react'
 import { Link, Navigate } from 'react-router-dom'
 import api from '../../api/api'
 import { useAuth } from '../../hooks/useAuth'
+import ModelPicker from '../../components/ui/ModelPicker'
 
 const inputClass = 'w-full min-w-0 rounded-xl border border-gray-200 bg-gray-50 px-3 py-2.5 text-sm text-gray-900 outline-none focus:border-bordo focus:ring-2 focus:ring-bordo/15 disabled:opacity-50 dark:border-gray-700 dark:bg-gray-800 dark:text-white'
 const buttonClass = 'rounded-xl border border-gray-200 px-4 py-2 text-sm font-semibold text-gray-600 hover:border-bordo focus-visible:outline-bordo disabled:cursor-not-allowed disabled:opacity-50 dark:border-gray-700 dark:text-gray-300'
@@ -106,19 +107,69 @@ function ConfigurationSession() {
 function AgentForm({ agent, providers, busy, onSave, onCancel }) {
   const [values, setValues] = useState(() => ({ name: agent?.name ?? '', provider: agent?.provider ?? providers[0].id, model: agent?.model ?? providers[0].default_model, instructions: agent?.instructions ?? '', api_key: '' }))
   const [showKey, setShowKey] = useState(false)
+  const [discovery, setDiscovery] = useState(null)
+  const [fetching, setFetching] = useState(false)
+  const [modelError, setModelError] = useState(null)
+  const [manualModel, setManualModel] = useState(true)
+  const modelRequest = useRef(null)
   const needsKey = !agent || values.provider !== agent.provider
-  const setField = (key, value) => setValues((previous) => ({ ...previous, [key]: value }))
-  return <form aria-label={agent ? 'Edit AI agent' : 'Add AI agent'} onSubmit={(event) => { event.preventDefault(); onSave(values) }} className="mb-7 rounded-2xl border border-gray-100 bg-white p-6 sm:p-8 dark:border-gray-800 dark:bg-gray-900">
+  const canFetch = !busy && !fetching && (values.api_key.length >= 10 || (!needsKey && !values.api_key))
+
+  useEffect(() => () => modelRequest.current?.abort(), [])
+
+  function resetModels() {
+    modelRequest.current?.abort(); modelRequest.current = null
+    setDiscovery(null); setFetching(false); setModelError(null); setManualModel(true)
+  }
+
+  function setField(key, value) {
+    if (key === 'api_key') resetModels()
+    setValues((previous) => ({ ...previous, [key]: value }))
+  }
+
+  async function fetchModels() {
+    if (!canFetch) return
+    modelRequest.current?.abort()
+    const controller = new AbortController()
+    modelRequest.current = controller
+    setFetching(true); setModelError(null); setDiscovery(null); setManualModel(true)
+    try {
+      const { data } = await api.post('/llm-configurations/models', {
+        provider: values.provider,
+        ...(agent ? { configuration_id: agent.id } : {}),
+        ...(values.api_key ? { api_key: values.api_key } : {}),
+      }, { signal: controller.signal, timeout: 35000 })
+      if (controller.signal.aborted || modelRequest.current !== controller) return
+      if (!Array.isArray(data.models)) throw new Error('Invalid model list')
+      setDiscovery(data); setManualModel(data.models.length === 0)
+    } catch (failure) {
+      if (controller.signal.aborted || modelRequest.current !== controller) return
+      const response = failure.response?.data
+      setModelError(response?.errors ? Object.values(response.errors).flat().join(' ') : failure.response?.status === 429 ? 'You have reached the model lookup limit. Please try again later.' : response?.message ?? 'Could not fetch models. Try again or enter a model ID manually.')
+    } finally {
+      if (modelRequest.current === controller) { modelRequest.current = null; setFetching(false) }
+    }
+  }
+  return <form aria-label={agent ? 'Edit AI agent' : 'Add AI agent'} onSubmit={(event) => { event.preventDefault(); if (!busy && !fetching && values.model.trim()) onSave(values) }} className="mb-7 rounded-2xl border border-gray-100 bg-white p-6 sm:p-8 dark:border-gray-800 dark:bg-gray-900">
     <h2 className="mb-5 text-lg font-bold text-gray-900 dark:text-white">{agent ? 'Edit agent' : 'Add an agent'}</h2>
     <fieldset disabled={busy} className="min-w-0 space-y-5">
-      <fieldset><legend className="mb-2 text-sm font-semibold text-gray-700 dark:text-gray-200">Provider</legend><div className="grid gap-3 sm:grid-cols-2 xl:grid-cols-4">{providers.map((provider) => <label key={provider.id} className={`flex cursor-pointer items-center gap-2 rounded-xl border p-3 text-sm font-semibold ${values.provider === provider.id ? 'border-bordo bg-bordo/10 text-gray-900 dark:text-white' : 'border-gray-200 text-gray-500 dark:border-gray-700 dark:text-gray-400'}`}><input type="radio" name="llm-provider" value={provider.id} checked={values.provider === provider.id} onChange={() => { setValues((previous) => ({ ...previous, provider: provider.id, model: provider.default_model, api_key: '' })); setShowKey(false) }} className="accent-bordo" />{provider.label}</label>)}</div></fieldset>
-      <div className="grid min-w-0 gap-5 md:grid-cols-2">
+      <fieldset><legend className="mb-2 text-sm font-semibold text-gray-700 dark:text-gray-200">Provider</legend><div className="grid gap-3 sm:grid-cols-2 xl:grid-cols-4">{providers.map((provider) => <label key={provider.id} className={`flex cursor-pointer items-center gap-2 rounded-xl border p-3 text-sm font-semibold ${values.provider === provider.id ? 'border-bordo bg-bordo/10 text-gray-900 dark:text-white' : 'border-gray-200 text-gray-500 dark:border-gray-700 dark:text-gray-400'}`}><input type="radio" name="llm-provider" value={provider.id} checked={values.provider === provider.id} onChange={() => { resetModels(); setValues((previous) => ({ ...previous, provider: provider.id, model: provider.default_model, api_key: '' })); setShowKey(false) }} className="accent-bordo" />{provider.label}</label>)}</div></fieldset>
+      <div className="min-w-0">
         <div><label htmlFor="agent-name" className="mb-2 block text-sm font-semibold text-gray-700 dark:text-gray-200">Agent name</label><input id="agent-name" value={values.name} required maxLength={80} onChange={(event) => setField('name', event.target.value)} placeholder="My writing assistant" className={inputClass} /></div>
-        <div><label htmlFor="agent-model" className="mb-2 block text-sm font-semibold text-gray-700 dark:text-gray-200">Model ID</label><input id="agent-model" value={values.model} required maxLength={100} onChange={(event) => setField('model', event.target.value)} className={`${inputClass} font-mono`} /><p className="mt-1 text-xs text-gray-400">Use a text model with structured JSON output support.</p></div>
       </div>
       <div><label htmlFor="agent-api-key" className="mb-2 block text-sm font-semibold text-gray-700 dark:text-gray-200">API key</label><div className="flex gap-2"><input id="agent-api-key" type={showKey ? 'text' : 'password'} value={values.api_key} required={needsKey} minLength={10} maxLength={4096} onChange={(event) => setField('api_key', event.target.value)} placeholder={needsKey ? 'Enter the provider API key' : 'Leave blank to keep the saved key'} autoComplete="off" autoCapitalize="none" spellCheck={false} className={inputClass} /><button type="button" aria-label={showKey ? 'Hide API key' : 'Show API key'} onClick={() => setShowKey((value) => !value)} className={buttonClass}>{showKey ? 'Hide' : 'Show'}</button></div><p className="mt-1 text-xs text-gray-400">Saved keys are never displayed again. Changing the provider, model, or key requires reconnecting.</p></div>
+      <section aria-label="Model selection" className="rounded-xl border border-gray-200 bg-gray-50/50 p-4 dark:border-gray-700 dark:bg-gray-800/30">
+        <div className="mb-4 flex flex-wrap items-center justify-between gap-3"><div><h3 className="text-sm font-semibold text-gray-700 dark:text-gray-200">Choose a model</h3><p className="mt-1 text-sm text-gray-500 dark:text-gray-400">Fetch the provider's model list using your {values.api_key ? 'entered' : !needsKey ? 'saved' : 'API'} key.</p></div><button type="button" disabled={!canFetch} onClick={fetchModels} className={buttonClass}>{fetching ? 'Fetching models…' : 'Fetch models'}</button></div>
+        <div className="mb-2 flex flex-wrap items-center justify-between gap-2"><label htmlFor={manualModel ? 'agent-model' : undefined} className="text-sm font-semibold text-gray-700 dark:text-gray-200">Model ID</label>{discovery?.models.length > 0 && <button type="button" onClick={() => setManualModel((value) => !value)} className="text-sm font-semibold text-bordo underline decoration-bordo/40 underline-offset-4 focus-visible:outline-bordo">{manualModel ? 'Choose from list' : 'Enter manually'}</button>}</div>
+        {manualModel || !discovery?.models.length ? <input id="agent-model" value={values.model} required maxLength={100} onChange={(event) => setField('model', event.target.value)} autoCapitalize="none" spellCheck={false} className={`${inputClass} font-mono`} /> : <ModelPicker models={discovery.models} value={values.model} onChange={(value) => setField('model', value)} disabled={busy || fetching} />}
+        {fetching && <p role="status" className="mt-3 text-sm text-gray-500 dark:text-gray-400">Loading models from the provider…</p>}
+        {modelError && <p role="alert" className="mt-3 text-sm text-red-600 dark:text-red-400">{modelError}</p>}
+        {discovery && <p role="status" className="mt-3 text-sm text-gray-500 dark:text-gray-400">{discovery.models.length === 0 ? 'No models were returned for this key. You can enter a model ID manually.' : `${discovery.models.length} ${discovery.models.length === 1 ? 'model' : 'models'} fetched. Search the list or enter an ID manually.`}{discovery.truncated ? ' This list is partial; enter an unlisted ID manually.' : ''}</p>}
+        {!manualModel && discovery?.models.length > 0 && !discovery.models.some((model) => model.id === values.model) && <p className="mt-2 text-sm text-gray-500 dark:text-gray-400">Your current ID was not in this list. Choose a listed model or keep the ID using manual entry.</p>}
+        <p className="mt-3 text-sm text-gray-500 dark:text-gray-400">Choose a text model with structured JSON output. After saving, Connect checks model access and a sample response.</p>
+      </section>
       <div><label htmlFor="agent-instructions" className="mb-2 block text-sm font-semibold text-gray-700 dark:text-gray-200">Writing style <span className="font-normal text-gray-400">(optional)</span></label><textarea id="agent-instructions" value={values.instructions} maxLength={1000} rows={3} onChange={(event) => setField('instructions', event.target.value)} placeholder="Use a friendly tone and clear, concise language." className={inputClass} /></div>
-      <div className="flex flex-wrap items-center justify-end gap-3 border-t border-gray-100 pt-5 dark:border-gray-800">{onCancel && <button type="button" onClick={onCancel} className={buttonClass}>Cancel</button>}<button type="submit" className="rounded-xl bg-bordo px-5 py-2.5 text-sm font-bold text-green disabled:opacity-50">{busy ? 'Saving…' : 'Save agent'}</button></div>
+      <div className="flex flex-wrap items-center justify-end gap-3 border-t border-gray-100 pt-5 dark:border-gray-800">{onCancel && <button type="button" onClick={onCancel} className={buttonClass}>Cancel</button>}<button type="submit" disabled={fetching || !values.model.trim()} className="rounded-xl bg-bordo px-5 py-2.5 text-sm font-bold text-green disabled:opacity-50">{busy ? 'Saving…' : 'Save agent'}</button></div>
     </fieldset>
   </form>
 }

@@ -29,7 +29,9 @@ Each agent has a name, provider (**OpenAI**, **Google Gemini**, **Anthropic Clau
 or **Grok (xAI)**), model ID, API key, and optional writing-style instructions.
 
 1. Run `php artisan migrate` from `Backend` to create the configurations table.
-2. Choose **Add agent**, enter the provider's model ID and key, and **Save agent**.
+2. Choose **Add agent**, select a provider, and enter its API key. Use **Fetch models**
+   to search available model names and IDs, or enter a model ID manually, then
+   **Save agent**. Editing an agent can fetch models using its saved key.
 3. Choose **Connect**. This makes a short sample generation request to verify
    credentials, model access, and the required JSON output. It may use API credits.
 4. A successful connection selects that agent for the editor. Connecting another
@@ -41,6 +43,9 @@ You can edit agents, keep an existing key by leaving its replacement field blank
 disconnect without deleting settings, or delete an agent after confirmation.
 Changing a provider requires a new key. Provider, model, or key changes require
 reconnection. Each account can save up to 10 agents and select one at a time.
+Changing the provider or entered key clears fetched choices and cancels an
+outstanding lookup. Fetch errors leave manual entry available. Model lookup does
+not select a model automatically or verify generation; use Connect after saving.
 
 Keys are encrypted in the database using Laravel's `APP_KEY`, are hidden from
 JSON responses, and are never sent back to the browser or stored in browser
