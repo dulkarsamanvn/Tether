@@ -81,3 +81,19 @@ export function LlmConfigurationSkeleton() {
   </SkeletonStatus>
 }
 
+export function AuthorProfileSkeleton() {
+  return <SkeletonStatus label="Loading author profile" className="mx-auto max-w-6xl">
+    <div className="mb-8 rounded-2xl border border-gray-100 bg-white p-6 sm:p-8 dark:border-gray-800 dark:bg-gray-900">
+      <div className="flex flex-wrap items-center gap-5">
+        <SkeletonBlock className="h-20 w-20 shrink-0" rounded="rounded-full" />
+        <div className="min-w-0 flex-1 space-y-3"><SkeletonBlock className="h-3 w-32 max-w-full" /><SkeletonBlock className="h-8 w-48 max-w-full" /><SkeletonBlock className="h-4 w-40 max-w-full" /></div>
+        <SkeletonBlock className="h-10 w-28" rounded="rounded-xl" />
+      </div>
+      <div className="mt-6 space-y-2"><SkeletonBlock className="h-4 w-3/4" /><SkeletonBlock className="h-4 w-1/2" /></div>
+      <div className="mt-5 flex flex-wrap gap-x-6 gap-y-2">{Array.from({ length: 3 }, (_, index) => <SkeletonBlock key={index} className="h-4 w-28" />)}</div>
+    </div>
+    <SkeletonBlock className="mb-5 h-6 w-40" />
+    <BlogCardPlaceholders count={3} />
+  </SkeletonStatus>
+}
+

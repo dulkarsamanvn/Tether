@@ -5,6 +5,7 @@ import Avatar from '../../components/ui/Avatar'
 import BlogCard from '../../components/ui/BlogCard'
 import FollowButton from '../../components/ui/FollowButton'
 import { useAuth } from '../../hooks/useAuth'
+import { AuthorProfileSkeleton } from '../../components/ui/LoadingSkeletons'
 
 const buttonClass = 'rounded-xl border border-gray-200 px-4 py-2 text-sm font-semibold text-gray-600 hover:border-bordo focus-visible:outline-bordo disabled:cursor-not-allowed disabled:opacity-40 dark:border-gray-700 dark:text-gray-300'
 
@@ -40,7 +41,7 @@ function AuthorProfilePage({ authorId, page, onPageChange, onRefresh }) {
     return () => { cancelled = true }
   }, [authorId, page, onPageChange])
 
-  if (!result) return <p role="status" className="py-16 text-center text-gray-500 dark:text-gray-400">Loading author profile…</p>
+  if (!result) return <AuthorProfileSkeleton />
   if (result.error) return <div className="mx-auto max-w-3xl py-16 text-center"><p role="alert" className="mb-4 text-gray-600 dark:text-gray-300">{result.error}</p><button type="button" className={buttonClass} onClick={onRefresh}>Try again</button></div>
   const { author, blogs } = result
 
