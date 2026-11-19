@@ -1,0 +1,7 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="512" height="512" viewBox="0 0 128 128" fill="none" role="img" aria-labelledby="title desc">
+  <title id="title">Tether logo proposal</title>
+  <desc id="desc">A bold dark T with a fountain pen nib in its stem, on a warm orange rounded square.</desc>
+  <rect x="4" y="4" width="120" height="120" rx="28" fill="#E89951"/>
+  <path d="M30 28H98C104.627 28 110 33.373 110 40C110 46.627 104.627 52 98 52H76V89C76 92.3 74.9 95.1 72.8 98L64 110L55.2 98C53.1 95.1 52 92.3 52 89V52H30C23.373 52 18 46.627 18 40C18 33.373 23.373 28 30 28Z" fill="#18190F"/>
+  <path d="M64 84A3.5 3.5 0 0 0 62.15 90.47L63.15 110H64.85L65.85 90.47A3.5 3.5 0 0 0 64 84Z" fill="#E89951"/>
+</svg>
