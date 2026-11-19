@@ -4,7 +4,6 @@ import api from '../../api/api'
 import { useAuth } from '../../hooks/useAuth'
 import ModelPicker from '../../components/ui/ModelPicker'
 import FlashMessage from '../../components/ui/FlashMessage'
-import { LlmConfigurationSkeleton } from '../../components/ui/LoadingSkeletons'
 
 const inputClass = 'w-full min-w-0 rounded-xl border border-gray-200 bg-gray-50 px-3 py-2.5 text-sm text-gray-900 outline-none focus:border-bordo focus:ring-2 focus:ring-bordo/15 disabled:opacity-50 dark:border-gray-700 dark:bg-gray-800 dark:text-white'
 const buttonClass = 'rounded-xl border border-gray-200 px-4 py-2 text-sm font-semibold text-gray-600 hover:border-bordo focus-visible:outline-bordo disabled:cursor-not-allowed disabled:opacity-50 dark:border-gray-700 dark:text-gray-300'
@@ -58,8 +57,7 @@ function ConfigurationSession() {
     } finally { setOperation(null) }
   }
 
-  if (!data && !error) return <LlmConfigurationSkeleton />
-  if (!data) return <div className="mx-auto max-w-6xl py-12 text-center"><p role="alert" className="mb-4 text-red-500">{error}</p><button type="button" onClick={() => { setError(null); setVersion((value) => value + 1) }} className={buttonClass}>Try again</button></div>
+  if (!data) return <div className="mx-auto max-w-6xl py-12 text-center">{error ? <><p role="alert" className="mb-4 text-red-500">{error}</p><button type="button" onClick={() => { setError(null); setVersion((value) => value + 1) }} className={buttonClass}>Try again</button></> : <p role="status" className="text-gray-500">Loading LLM configuration…</p>}</div>
   const active = data.configurations.find((agent) => agent.is_active)
   const formVisible = showForm || data.configurations.length === 0
   const busy = Boolean(operation)

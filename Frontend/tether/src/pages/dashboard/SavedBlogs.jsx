@@ -4,7 +4,6 @@ import api from '../../api/api'
 import BlogCard from '../../components/ui/BlogCard'
 import BookmarkButton from '../../components/ui/BookmarkButton'
 import { useAuth } from '../../hooks/useAuth'
-import { SavedBlogsSkeleton } from '../../components/ui/LoadingSkeletons'
 
 export default function SavedBlogs() {
   const { user, isAuthenticated } = useAuth()
@@ -51,10 +50,10 @@ function SavedBlogPage({ page, onPageChange, onRefresh }) {
     <div className="max-w-7xl mx-auto" aria-busy={loading}>
       <h1 className="text-2xl font-extrabold text-gray-900 dark:text-white">Saved Blogs</h1>
       <p className="mt-1 mb-8 text-sm text-gray-400 dark:text-gray-500">
-        {data ? `${data.total} saved ${data.total === 1 ? 'article' : 'articles'}` : 'Your personal reading list.'}
+        {loading ? 'Loading your reading list...' : data ? `${data.total} saved ${data.total === 1 ? 'article' : 'articles'}` : 'Your personal reading list.'}
       </p>
 
-      {loading && <SavedBlogsSkeleton />}
+      {loading && <p role="status" className="py-12 text-center text-gray-500 dark:text-gray-400">Loading saved blogs...</p>}
 
       {result?.error && (
         <div className="rounded-2xl border border-red-200 bg-red-50 p-6 text-center dark:border-red-900 dark:bg-red-950/20">

@@ -2,7 +2,6 @@ import { useEffect, useState } from 'react'
 import { Link, Navigate } from 'react-router-dom'
 import api from '../../api/api'
 import { useAuth } from '../../hooks/useAuth'
-import { TrashBlogsSkeleton } from '../../components/ui/LoadingSkeletons'
 
 const buttonClass = 'rounded-xl border border-gray-200 px-4 py-2 text-sm font-semibold text-gray-600 hover:border-bordo focus-visible:outline-bordo disabled:opacity-40 disabled:cursor-not-allowed dark:border-gray-700 dark:text-gray-300'
 
@@ -96,7 +95,7 @@ function TrashList({ page, onPageChange, onRefresh, onRestored }) {
     <section aria-label="Trashed blogs" aria-busy={loading}>
       <div className="mb-4 flex items-center justify-between gap-4">
         <p className="text-sm text-gray-500 dark:text-gray-400">
-          {data ? `${data.total} ${data.total === 1 ? 'post' : 'posts'} in Trash` : 'Your deleted posts.'}
+          {loading ? 'Loading Trash...' : data ? `${data.total} ${data.total === 1 ? 'post' : 'posts'} in Trash` : 'Your deleted posts.'}
         </p>
         <button type="button" onClick={onRefresh} disabled={restoringId !== null} className={buttonClass}>Refresh</button>
       </div>
@@ -107,7 +106,7 @@ function TrashList({ page, onPageChange, onRefresh, onRestored }) {
         </p>
       )}
 
-      {loading && <TrashBlogsSkeleton />}
+      {loading && <p role="status" className="py-12 text-center text-gray-500 dark:text-gray-400">Loading deleted posts...</p>}
 
       {data?.data.length === 0 && (
         <div className="rounded-2xl border border-gray-100 bg-white px-5 py-20 text-center dark:border-gray-800 dark:bg-gray-900">
