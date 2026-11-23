@@ -2,6 +2,7 @@
 
 use App\Http\Controllers\AuthController;
 use App\Http\Controllers\AuthorController;
+use App\Http\Controllers\AuthorAnalyticsController;
 use App\Http\Controllers\ProfileController;
 use App\Http\Controllers\FollowController;
 use App\Http\Controllers\EditorialSuggestionController;
@@ -36,6 +37,7 @@ Route::get('/tags', [TagController::class, 'index']);
 
 // Protected routes: login required
 Route::middleware('auth:sanctum')->group(function () {
+    Route::get('/author/analytics', [AuthorAnalyticsController::class, 'index']);
     Route::get('/llm-configurations', [LlmConfigurationController::class, 'index']);
     Route::get('/llm-configurations/active', [LlmConfigurationController::class, 'active']);
     Route::post('/llm-configurations/models', [LlmConfigurationController::class, 'models'])->middleware('throttle:llm-models');

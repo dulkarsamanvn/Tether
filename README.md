@@ -21,6 +21,27 @@ A blog management system with a **Laravel** API backend and a **React** frontend
 - Author discovery with name/bio search, sorting, and follow controls
 - AI title and excerpt suggestions with individual review and apply controls
 - Private LLM agent configuration with encrypted keys and connection testing
+- Private author analytics with date filters, daily activity, previous-period comparisons, and post rankings
+
+### Author analytics
+
+Authenticated, active authors can read `GET /api/author/analytics`. Optional
+`start_date` and `end_date` must be supplied together as `YYYY-MM-DD` UTC dates.
+The default is the last 30 days, including today; custom ranges can cover up to
+366 days and cannot end in the future. `sort` accepts `views`, `likes`, or
+`comments`; ranked posts are paginated 10 at a time using `page`.
+
+The response includes period totals, an equal-length previous-period comparison,
+zero-filled daily activity, current published/draft/scheduled library counts,
+and ranked posts. All analytics are scoped to the signed-in author's currently
+published, non-trashed posts. No reader identities or IP addresses are returned.
+Views use the existing first-view records (one reader per post), exclude the
+author's own visits, and are not page-reload counts. Period counts use the event
+creation date; old posts can receive activity in a recent date range. Removed
+likes and deleted comments no longer contribute to historical totals. Existing
+`view_count` counters are not used to invent dated events.
+
+Run `php artisan migrate` from `Backend` to add the analytics query indexes.
 
 ### LLM Configuration
 
