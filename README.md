@@ -25,6 +25,12 @@ A blog management system with a **Laravel** API backend and a **React** frontend
 
 ### Author analytics
 
+Open **Analytics** in the sidebar for totals, daily charts, and post performance.
+Choose the last 7, 30, or 90 days, or apply custom dates. Switch the chart between
+views, likes, comments, and published posts; explore days with the pointer or
+keyboard, or expand the daily data table. Post rankings can be sorted by views,
+likes, or comments. Empty states, loading skeletons, and retry controls are included.
+
 Authenticated, active authors can read `GET /api/author/analytics`. Optional
 `start_date` and `end_date` must be supplied together as `YYYY-MM-DD` UTC dates.
 The default is the last 30 days, including today; custom ranges can cover up to

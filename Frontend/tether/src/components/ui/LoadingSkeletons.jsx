@@ -118,3 +118,11 @@ export function EditProfileSkeleton() {
     </div>
   </SkeletonStatus>
 }
+
+export function AuthorAnalyticsSkeleton() {
+  return <SkeletonStatus label="Loading author analytics">
+    <div className="mb-6 grid grid-cols-2 gap-3 sm:gap-5 xl:grid-cols-4">{Array.from({ length: 4 }, (_, index) => <div key={index} className="space-y-4 rounded-2xl border border-gray-100 bg-white p-5 dark:border-gray-800 dark:bg-gray-900"><SkeletonBlock className="h-4 w-3/4" /><SkeletonBlock className="h-9 w-20 max-w-full" /><SkeletonBlock className="h-3 w-2/3" /></div>)}</div>
+    <div className="mb-6 space-y-5 rounded-2xl border border-gray-100 bg-white p-6 dark:border-gray-800 dark:bg-gray-900"><SkeletonBlock className="h-6 w-40" /><SkeletonBlock className="h-52 w-full" rounded="rounded-xl" /></div>
+    <div className="space-y-5 rounded-2xl border border-gray-100 bg-white p-6 dark:border-gray-800 dark:bg-gray-900"><SkeletonBlock className="h-6 w-40" />{Array.from({ length: 4 }, (_, index) => <SkeletonBlock key={index} className="h-8 w-full" />)}</div>
+  </SkeletonStatus>
+}
