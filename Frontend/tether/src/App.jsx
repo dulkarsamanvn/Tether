@@ -4,6 +4,8 @@ import { ThemeProvider } from './context/ThemeContext'
 import DashboardLayout from './layouts/DashboardLayout'
 import Login from './pages/auth/Login'
 import Signup from './pages/auth/Signup'
+import ForgotPassword from './pages/auth/ForgotPassword'
+import ResetPassword from './pages/auth/ResetPassword'
 import BlogEditor from './pages/dashboard/BlogEditor'
 import BlogView from './pages/dashboard/BlogView'
 import Home from './pages/dashboard/Home'
@@ -22,6 +24,8 @@ import AuthorAnalytics from './pages/dashboard/AuthorAnalytics'
 const router = createBrowserRouter([
   { path: '/login', element: <Login /> },
   { path: '/signup', element: <Signup /> },
+  { path: '/forgot-password', element: <ForgotPassword /> },
+  { path: '/reset-password', element: <ResetPassword /> },
   {
     path: '/dashboard',
     element: <DashboardLayout />,

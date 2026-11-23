@@ -1,6 +1,6 @@
 import { motion } from 'framer-motion'
 import { useState } from 'react'
-import { Link, useNavigate } from 'react-router-dom'
+import { Link, useLocation, useNavigate } from 'react-router-dom'
 import api from '../../api/api'
 import { useAuth } from '../../hooks/useAuth'
 import AuthLayout from '../../layouts/AuthLayout'
@@ -18,6 +18,7 @@ const fadeUp = {
 export default function Login() {
   const { login } = useAuth()
   const navigate  = useNavigate()
+  const location = useLocation()
 
   const [formData, setFormData]       = useState({ email: '', password: '' })
   const [errors, setErrors]           = useState({})
@@ -83,6 +84,12 @@ export default function Login() {
           </p>
         </motion.div>
 
+        {location.state?.passwordReset && (
+          <div role="status" className="mb-5 rounded-xl border border-sage/30 bg-sage/10 px-4 py-3 text-sm text-gray-600">
+            Your password has been reset. Sign in with your new password.
+          </div>
+        )}
+
         {/* General error */}
         {errors.general && (
           <motion.div
@@ -128,9 +135,9 @@ export default function Login() {
               <label htmlFor="password" className="block text-xs font-bold uppercase tracking-wide text-gray-500">
                 Password
               </label>
-              <a href="#" className="text-xs text-bordo/70 font-medium hover:text-bordo hover:underline transition-colors">
+              <Link to="/forgot-password" className="text-xs text-bordo/70 font-medium hover:text-bordo hover:underline transition-colors">
                 Forgot password?
-              </a>
+              </Link>
             </div>
             <div className="relative">
               <div className="absolute inset-y-0 left-0 pl-3.5 flex items-center pointer-events-none">

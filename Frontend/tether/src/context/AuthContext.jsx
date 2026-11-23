@@ -32,8 +32,13 @@ export function AuthProvider({ children }) {
     localStorage.setItem('auth_user', JSON.stringify(updated))
   }
 
+  const logoutForEmail = (email) => {
+    // A reset for another account must not clear the current account's sign-in.
+    if (userRef.current?.email === email) logout()
+  }
+
   return (
-    <AuthContext.Provider value={{ user, token, login, logout, updateUser, isAuthenticated: !!token }}>
+    <AuthContext.Provider value={{ user, token, login, logout, logoutForEmail, updateUser, isAuthenticated: !!token }}>
       {children}
     </AuthContext.Provider>
   )

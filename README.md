@@ -26,6 +26,14 @@ A blog management system with a **Laravel** API backend and a **React** frontend
 
 ### Password recovery
 
+Choose **Forgot password?** on the sign-in page to request a link. The recovery
+form shows a generic inbox notice and a resend countdown. Open the emailed link
+to choose and confirm a new password; the reset page handles missing, expired,
+and already-used links with an option to request another one. After success,
+the browser returns to sign-in with confirmation. Reset credentials and passwords
+are never saved to local or session storage. If this browser is signed in to the
+account being reset, its local sign-in is cleared; another account is preserved.
+
 `POST /api/forgot-password` accepts an email and returns the same generic response
 for active, unknown, inactive, and recently requested accounts. Requests have IP
 and email-based limits, including a 60-second resend cooldown. Reset tokens are
