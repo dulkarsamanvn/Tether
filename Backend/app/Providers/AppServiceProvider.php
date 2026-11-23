@@ -22,6 +22,22 @@ class AppServiceProvider extends ServiceProvider
      */
     public function boot(): void
     {
+        $emailKey = static function (Request $request): string {
+            $email = $request->input('email');
+
+            return hash('sha256', is_string($email) ? mb_strtolower(trim($email)) : '');
+        };
+
+        RateLimiter::for('password-links', fn (Request $request) => [
+            Limit::perMinute(5)->by('password-links:ip:'.$request->ip()),
+            Limit::perDay(20)->by('password-links:day:'.$request->ip()),
+            Limit::perMinute(1)->by('password-links:email:'.$emailKey($request)),
+        ]);
+        RateLimiter::for('password-resets', fn (Request $request) => [
+            Limit::perMinute(10)->by('password-resets:ip:'.$request->ip()),
+            Limit::perMinute(5)->by('password-resets:email:'.$emailKey($request)),
+        ]);
+
         RateLimiter::for('llm-models', fn (Request $request) => [
             Limit::perMinute(10)->by('llm-models:minute:'.$request->user()->id),
             Limit::perDay(100)->by('llm-models:day:'.$request->user()->id),

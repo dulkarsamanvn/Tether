@@ -1,6 +1,7 @@
 <?php
 
 use App\Http\Controllers\AuthController;
+use App\Http\Controllers\PasswordResetController;
 use App\Http\Controllers\AuthorController;
 use App\Http\Controllers\AuthorAnalyticsController;
 use App\Http\Controllers\ProfileController;
@@ -20,6 +21,8 @@ use Illuminate\Support\Facades\Route;
 // Public routes: no login required
 Route::post('/register', [AuthController::class, 'register']);
 Route::post('/login', [AuthController::class, 'login']);
+Route::post('/forgot-password', [PasswordResetController::class, 'requestLink'])->middleware('throttle:password-links');
+Route::post('/reset-password', [PasswordResetController::class, 'reset'])->middleware('throttle:password-resets');
 Route::get('/authors', [AuthorController::class, 'index']);
 Route::get('/authors/{id}', [AuthorController::class, 'show'])->whereNumber('id');
 Route::get('/authors/{id}/blogs', [AuthorController::class, 'blogs'])->whereNumber('id');

@@ -5,6 +5,7 @@ A blog management system with a **Laravel** API backend and a **React** frontend
 ## Features
 
 - User registration, login and logout (token login with Laravel Sanctum)
+- Email password recovery with expiring, single-use links and queued delivery
 - Create, edit, delete and view blogs 
 - Featured image upload
 - Comments on blogs
@@ -22,6 +23,46 @@ A blog management system with a **Laravel** API backend and a **React** frontend
 - AI title and excerpt suggestions with individual review and apply controls
 - Private LLM agent configuration with encrypted keys and connection testing
 - Private author analytics with date filters, daily activity, previous-period comparisons, and post rankings
+
+### Password recovery
+
+`POST /api/forgot-password` accepts an email and returns the same generic response
+for active, unknown, inactive, and recently requested accounts. Requests have IP
+and email-based limits, including a 60-second resend cooldown. Reset tokens are
+hashed in the existing `password_reset_tokens` table and expire after 60 minutes.
+`POST /api/reset-password` accepts `email`, `token`, `password`, and
+`password_confirmation`. A successful reset consumes the link, rotates the
+remember token, revokes all Sanctum tokens and database sessions for that user,
+and requires a fresh login. Passwords must contain at least 8 characters and fit
+within bcrypt's 72-byte limit.
+
+Set `FRONTEND_URL` in `Backend/.env` to the trusted React application URL
+(development default: `http://localhost:5173`). Reset links use URL fragments so
+the token and email are not sent to the frontend web server. Do not build this
+URL from request headers. In production, use HTTPS and serve the React fallback
+for `/reset-password`.
+
+Configure `MAIL_MAILER=smtp`, your provider's `MAIL_HOST`, `MAIL_PORT`,
+`MAIL_USERNAME`, `MAIL_PASSWORD`, and verified `MAIL_FROM_ADDRESS` in the backend
+environment. Match `MAIL_SCHEME` to the provider. The example `log` mailer is only
+for local development: it writes email content, including reset links, to local
+logs and does not send email. Keep mail credentials and reset links private.
+
+Run `php artisan migrate` if the standard reset-token, session, and queue tables
+have not been created. Emails use encrypted jobs on the `password-resets` queue,
+dispatched after the token transaction commits. Start a worker from `Backend`:
+
+```sh
+php artisan queue:work database --queue=password-resets,default --tries=3 --timeout=30
+```
+
+`PASSWORD_RESET_QUEUE_CONNECTION` defaults to `database`, independently of the
+default queue connection. When using another asynchronous queue connection,
+update that variable and the worker command together. Jobs retry transient mail
+failures and skip links that have expired, been used, or been replaced. Monitor
+`php artisan queue:failed` and backend logs for delivery failures, and restart
+workers after deployment. Run `php artisan auth:clear-resets` periodically to
+remove expired token records. Automated tests fake delivery and never send mail.
 
 ### Author analytics
 

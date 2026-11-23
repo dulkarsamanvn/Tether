@@ -4,7 +4,7 @@ namespace App\Http\Controllers;
 
 use App\Models\User;
 use Illuminate\Http\Request;
-use Illuminate\Support\Facades\Auth;
+use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Hash;
 use Illuminate\Validation\ValidationException;
 
@@ -39,26 +39,24 @@ class AuthController extends Controller
             'password' => ['required', 'string'],
         ]);
 
-        $user = User::where('email',$credentials['email'])->first();
+        [$user, $token] = DB::transaction(function () use ($credentials) {
+            // A concurrent reset must finish before an old password can mint a token.
+            $user = User::where('email', $credentials['email'])->lockForUpdate()->first();
 
-        if(
-            ! $user ||
-            ! Hash::check($credentials['password'],$user->password)
-        ){
-            throw ValidationException::withMessages([
-                'email' => ['The provided credentials are incorrect.'],
-            ]);
-        }
+            if (! $user || ! Hash::check($credentials['password'], $user->password)) {
+                throw ValidationException::withMessages([
+                    'email' => ['The provided credentials are incorrect.'],
+                ]);
+            }
 
-        if(
-            ! $user->is_active
-        ){
-            throw ValidationException::withMessages([
-                'email' => ['Your account is inactive.'],
-            ]);
-        }
+            if (! $user->is_active) {
+                throw ValidationException::withMessages([
+                    'email' => ['Your account is inactive.'],
+                ]);
+            }
 
-        $token = $user->createToken('auth-token')->plainTextToken;
+            return [$user, $user->createToken('auth-token')->plainTextToken];
+        });
 
         return response()->json([
             'message' => 'Login successful.',

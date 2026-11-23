@@ -114,4 +114,6 @@ return [
 
     'password_timeout' => env('AUTH_PASSWORD_TIMEOUT', 10800),
 
+    'password_reset_queue_connection' => env('PASSWORD_RESET_QUEUE_CONNECTION', 'database'),
+
 ];
