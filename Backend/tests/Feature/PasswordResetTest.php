@@ -71,7 +71,8 @@ class PasswordResetTest extends TestCase
         $this->postJson('/api/forgot-password', ['email' => ['bad']])->assertUnprocessable()->assertJsonValidationErrors('email');
         $email = 'unknown@example.invalid';
         $this->postJson('/api/forgot-password', compact('email'))->assertAccepted();
-        $this->postJson('/api/forgot-password', compact('email'))->assertStatus(429)->assertHeader('Retry-After');
+        $this->withHeader('Origin', 'http://localhost:5173')->postJson('/api/forgot-password', compact('email'))
+            ->assertStatus(429)->assertHeader('Retry-After')->assertHeader('Access-Control-Expose-Headers', 'Retry-After');
         $this->travel(61)->seconds();
         $this->postJson('/api/forgot-password', compact('email'))->assertAccepted();
         Notification::assertNothingSent();
